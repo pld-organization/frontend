@@ -1,10 +1,15 @@
-import { Link, useNavigate } from "react-router";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logoSahtekonline.png";
 import patientImage from "../assets/patient-card.png";
 import doctorImage from "../assets/doctor-card.jpg";
 
 function RoleSelectionPage() {
   const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState("doctor");
+
+  const registerPath =
+    selectedRole === "patient" ? "/register/patient" : "/register/doctor";
 
   return (
     <div className="role-page">
@@ -18,8 +23,10 @@ function RoleSelectionPage() {
 
         <div className="role-cards">
           <div
-            className="role-card patient-card"
-            onClick={() => navigate("/register/patient")}
+            className={`role-card patient-card${
+              selectedRole === "patient" ? " active" : ""
+            }`}
+            onClick={() => setSelectedRole("patient")}
           >
             <div className="role-card-image-wrap">
               <img src={patientImage} alt="Patient" className="role-card-image" />
@@ -28,8 +35,10 @@ function RoleSelectionPage() {
           </div>
 
           <div
-            className="role-card doctor-card active"
-            onClick={() => navigate("/register/doctor")}
+            className={`role-card doctor-card${
+              selectedRole === "doctor" ? " active" : ""
+            }`}
+            onClick={() => setSelectedRole("doctor")}
           >
             <div className="role-card-image-wrap">
               <img src={doctorImage} alt="Doctor" className="role-card-image" />
@@ -44,7 +53,7 @@ function RoleSelectionPage() {
 
         <button
           className="role-register-btn"
-          onClick={() => navigate("/register/patient")}
+          onClick={() => navigate(registerPath)}
         >
           Register
         </button>

@@ -1,10 +1,102 @@
+import { useState } from "react";
 import "../styles/auth.css";
 import logo from "../assets/logoSahtekonline.png";
 import { FaFacebookF, FaTwitter, FaLinkedinIn } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
+import {
+  getApiErrorMessage,
+  getRoleDashboardPath,
+  isValidEmail,
+} from "../utils/authHelpers";
+
+const initialFormData = {
+  firstName: "",
+  lastName: "",
+  dateOfBirth: "",
+  gender: "",
+  phoneNumber: "",
+  email: "",
+  bloodType: "",
+  password: "",
+  confirmPassword: "",
+};
 
 function RegisterPagePatient() {
+  const navigate = useNavigate();
+  const { registerPatient } = useAuth();
+  const [formData, setFormData] = useState(initialFormData);
+  const [formError, setFormError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+
+    if (formError) {
+      setFormError("");
+    }
+  }
+
+  function validateForm() {
+    if (
+      !formData.firstName.trim() ||
+      !formData.lastName.trim() ||
+      !formData.gender ||
+      !formData.phoneNumber.trim() ||
+      !formData.bloodType ||
+      !formData.email.trim() ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      return "Please fill in all required patient fields.";
+    }
+
+    if (!isValidEmail(formData.email)) {
+      return "Please enter a valid email address.";
+    }
+
+    if (formData.password.length < 8) {
+      return "Password must contain at least 8 characters.";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return "Password confirmation does not match.";
+    }
+
+    return "";
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    const validationError = validateForm();
+
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setFormError("");
+
+    try {
+      const session = await registerPatient(formData);
+      navigate(getRoleDashboardPath(session?.user?.role), { replace: true });
+    } catch (error) {
+      setFormError(
+        getApiErrorMessage(error, "Unable to create the patient account."),
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <div className="patient-register-page">
       <div className="patient-register-container">
@@ -21,17 +113,34 @@ function RegisterPagePatient() {
 
           <h1 className="patient-register-title">Create Your Account</h1>
 
-          <form className="patient-register-form">
+          <form className="patient-register-form" onSubmit={handleSubmit}>
             <div className="patient-register-row">
-              <input type="text" placeholder="First Name" />
-              <input type="text" placeholder="Last Name" />
+              <input
+                name="firstName"
+                type="text"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+              <input
+                name="lastName"
+                type="text"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
             </div>
 
             <div className="patient-register-row">
-              <input type="text" placeholder="Date of Birth" />
+              <input
+                name="dateOfBirth"
+                type="date"
+                value={formData.dateOfBirth}
+                onChange={handleChange}
+              />
 
               <div className="patient-register-select-wrap">
-                <select defaultValue="">
+                <select name="gender" value={formData.gender} onChange={handleChange}>
                   <option value="" disabled>
                     Select gender
                   </option>
@@ -47,18 +156,83 @@ function RegisterPagePatient() {
                 <span className="patient-flag">DZ</span>
                 <span className="patient-code">+213</span>
               </div>
-              <input type="text" placeholder="Phone Number" />
+              <input
+                name="phoneNumber"
+                type="text"
+                placeholder="0555123456"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+              />
             </div>
 
-            <input type="email" placeholder="Email" />
-            <input type="password" placeholder="Password" />
-            <input type="password" placeholder="Confirm Password" />
+            <div className="patient-register-row">
+              <div className="patient-register-select-wrap">
+                <select
+                  name="bloodType"
+                  value={formData.bloodType}
+                  onChange={handleChange}
+                >
+                  <option value="" disabled>
+                    Select blood type
+                  </option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+                <span className="patient-select-arrow">&gt;</span>
+              </div>
 
-            <button type="submit" className="patient-register-btn">
-              Create Account
+              <input
+                name="email"
+                type="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="patient-register-row">
+              <input
+                name="password"
+                type="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                autoComplete="new-password"
+              />
+              <input
+                name="confirmPassword"
+                type="password"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                autoComplete="new-password"
+              />
+            </div>
+
+            {formError ? (
+              <p className="form-message form-message--error">{formError}</p>
+            ) : null}
+
+            <button
+              type="submit"
+              className="patient-register-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
 
-            <button type="button" className="patient-google-btn">
+            <button
+              type="button"
+              className="patient-google-btn"
+              disabled={isSubmitting}
+            >
               <span className="patient-google-icon">
                 <FcGoogle />
               </span>
