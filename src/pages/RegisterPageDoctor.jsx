@@ -225,7 +225,7 @@ function RegisterPageDoctor() {
 
           <div className="doctor-register-footer">
             <p className="doctor-register-login-text">
-              Already have an account? <Link to="/">Log In</Link>
+              Already have an account? <Link to="/login">Log In</Link>
             </p>
 
             <div className="doctor-register-socials">

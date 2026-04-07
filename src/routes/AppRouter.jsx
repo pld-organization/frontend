@@ -16,6 +16,14 @@ function AppRouter() {
         path="/"
         element={
           <PublicOnlyRoute>
+            <RoleSelectionPage />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <PublicOnlyRoute>
             <LoginPage />
           </PublicOnlyRoute>
         }

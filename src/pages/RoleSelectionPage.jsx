@@ -48,7 +48,7 @@ function RoleSelectionPage() {
         </div>
 
         <p className="role-login-text">
-          Already have an account? <Link to="/">Log in</Link>
+          Already have an account? <Link to="/login">Log in</Link>
         </p>
 
         <button

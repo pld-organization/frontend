@@ -119,7 +119,7 @@ function LoginPage() {
             ) : null}
 
             <div className="forgot-row">
-              <a href="/">Forgot Your Password?</a>
+              <a href="/login">Forgot Your Password?</a>
             </div>
 
             <button type="button" className="google-btn" disabled={isSubmitting}>
@@ -135,7 +135,7 @@ function LoginPage() {
           </form>
 
           <p className="signup-text">
-            Don&apos;t Have An Account? <Link to="/roleSelection">Sign Up!</Link>
+            Don&apos;t Have An Account? <Link to="/">Sign Up!</Link>
           </p>
 
           <div className="social-icons">
