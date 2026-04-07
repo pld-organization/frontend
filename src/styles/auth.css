@@ -181,10 +181,10 @@ body,
   text-align: right;
 }
 
-.forgot-row a {
+.forgot-row a,
+.forgot-row span {
   font-size: 14px;
   color: #2276f3;
-  text-decoration: none;
   font-weight: 600;
 }
 

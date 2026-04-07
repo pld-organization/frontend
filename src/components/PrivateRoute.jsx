@@ -17,7 +17,7 @@ function PrivateRoute({ children, allowedRoles }) {
   }
 
   if (!isAuthenticated()) {
-    return <Navigate to="/" replace state={{ from: location }} />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   if (allowedRoles?.length && !allowedRoles.includes(user?.role)) {

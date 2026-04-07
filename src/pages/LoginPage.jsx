@@ -119,7 +119,7 @@ function LoginPage() {
             ) : null}
 
             <div className="forgot-row">
-              <a href="/login">Forgot Your Password?</a>
+              <span>Forgot Your Password?</span>
             </div>
 
             <button type="button" className="google-btn" disabled={isSubmitting}>
