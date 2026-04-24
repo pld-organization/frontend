@@ -1,0 +1,295 @@
+.patient-analysis-page {
+  width: 100%;
+  min-height: 100%;
+  font-family: var(--sans);
+}
+
+.analysis-hero-section {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(45, 158, 241, 0.08), rgba(79, 195, 247, 0.04));
+  border-radius: 24px;
+  margin-bottom: 40px;
+}
+
+.analysis-hero-content h2 {
+  font-size: 44px;
+  font-weight: 800;
+  color: #1a2332;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  letter-spacing: -0.01em;
+}
+
+.analysis-hero-content h2 svg {
+  color: #2d9ef1;
+  font-size: 48px;
+}
+
+.analysis-subtitle {
+  font-size: 18px;
+  color: #6f7f94;
+  margin: 0;
+  font-weight: 500;
+}
+
+.analysis-upload-section {
+  margin-bottom: 48px;
+}
+
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 32px;
+  background: linear-gradient(135deg, rgba(45, 158, 241, 0.04), rgba(79, 195, 247, 0.02));
+  border: 2px dashed #2d9ef1;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-card:hover {
+  border-color: #1e88e5;
+  background: linear-gradient(135deg, rgba(45, 158, 241, 0.08), rgba(79, 195, 247, 0.04));
+}
+
+.upload-icon {
+  font-size: 64px;
+  color: #2d9ef1;
+  margin-bottom: 16px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.upload-card h3 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a2332;
+  margin: 0 0 12px;
+}
+
+.upload-card p {
+  font-size: 16px;
+  color: #6f7f94;
+  margin: 0 0 24px;
+  font-weight: 500;
+}
+
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #2d9ef1, #1e88e5);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(45, 158, 241, 0.3);
+}
+
+.analysis-steps-section {
+  margin-bottom: 48px;
+}
+
+.analysis-steps-section h3 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a2332;
+  margin: 0 0 32px;
+  text-align: center;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.step-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 24px;
+  background: white;
+  border: 1px solid #e0e8f0;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.step-card:hover {
+  border-color: #2d9ef1;
+  box-shadow: 0 8px 24px rgba(45, 158, 241, 0.12);
+  transform: translateY(-4px);
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #2d9ef1, #1e88e5);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 50%;
+  margin-bottom: 16px;
+}
+
+.step-icon {
+  font-size: 40px;
+  color: #2d9ef1;
+  margin-bottom: 16px;
+}
+
+.step-card h4 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a2332;
+  margin: 0 0 12px;
+}
+
+.step-card p {
+  font-size: 14px;
+  color: #6f7f94;
+  margin: 0;
+  font-weight: 500;
+}
+
+.analysis-action-section {
+  display: flex;
+  justify-content: center;
+  padding: 32px 20px;
+}
+
+.analyze-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 36px;
+  background: linear-gradient(135deg, #2d9ef1, #1e88e5);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.analyze-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(45, 158, 241, 0.3);
+}
+
+@media (max-width: 768px) {
+  .analysis-hero-content h2 {
+    font-size: 32px;
+  }
+
+  .analysis-subtitle {
+    font-size: 16px;
+  }
+
+  .upload-card {
+    padding: 32px 20px;
+  }
+
+  .upload-icon {
+    font-size: 48px;
+  }
+
+  .upload-card h3 {
+    font-size: 22px;
+  }
+
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-steps-section h3 {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .analysis-hero-section {
+    padding: 28px 16px;
+    margin-bottom: 32px;
+  }
+
+  .analysis-hero-content h2 {
+    font-size: 24px;
+    gap: 8px;
+  }
+
+  .analysis-hero-content h2 svg {
+    font-size: 32px;
+  }
+
+  .analysis-subtitle {
+    font-size: 14px;
+  }
+
+  .upload-card {
+    padding: 24px 16px;
+  }
+
+  .upload-icon {
+    font-size: 40px;
+  }
+
+  .upload-card h3 {
+    font-size: 18px;
+  }
+
+  .upload-card p {
+    font-size: 14px;
+  }
+
+  .upload-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+
+  .step-card {
+    padding: 24px 16px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .step-icon {
+    font-size: 32px;
+  }
+
+  .step-card h4 {
+    font-size: 16px;
+  }
+
+  .step-card p {
+    font-size: 13px;
+  }
+}

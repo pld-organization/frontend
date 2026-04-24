@@ -1,0 +1,232 @@
+.doctor-overview-page {
+  width: 100%;
+}
+
+.doctor-overview-greeting {
+  font-size: 26px;
+  font-weight: 400;
+  color: #8c8c8c;
+  margin: 8px 0 24px;
+  line-height: 1.3;
+}
+
+.doctor-stats-card {
+  background: #ffffff;
+  border: 1px solid #dfe8f4;
+  border-radius: 18px;
+  padding: 22px 18px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+}
+
+.doctor-stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 18px;
+  min-height: 106px;
+  position: relative;
+}
+
+.doctor-stat-item.with-divider::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 12px;
+  width: 1px;
+  height: calc(100% - 24px);
+  background: #e7edf5;
+}
+
+.doctor-stat-text h3 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+  color: #0f1115;
+}
+
+.doctor-stat-text p {
+  margin: 0;
+  font-size: 14px;
+  color: #1f2430;
+  line-height: 1.35;
+}
+
+.doctor-stat-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(70, 95, 130, 0.08);
+  color: #2490ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.doctor-appointments-card {
+  margin-top: 24px;
+  background: #ffffff;
+  border: 1px solid #dfdfdf;
+  border-radius: 18px;
+  padding: 26px 26px 30px;
+}
+
+.doctor-appointments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.doctor-appointments-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #20242e;
+}
+
+.doctor-appointments-header p {
+  margin: 8px 0 0;
+  font-size: 16px;
+  color: #7f7f7f;
+}
+
+.full-schedule-btn {
+  min-width: 210px;
+  height: 46px;
+  border: 1px solid #8f8f8f;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111111;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.doctor-appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.doctor-appointment-row {
+  min-height: 80px;
+  border: 1px solid #dadada;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0 28px;
+  display: grid;
+  grid-template-columns: 220px 1.5fr 120px 190px;
+  align-items: center;
+  gap: 16px;
+}
+
+.appointment-time-block {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.time-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid #384c63;
+  color: #384c63;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.time-value {
+  font-size: 19px;
+  font-weight: 500;
+  color: #12161d;
+}
+
+.appointment-patient {
+  font-size: 18px;
+  font-weight: 500;
+  color: #161b23;
+}
+
+.appointment-type {
+  font-size: 17px;
+  color: #787878;
+}
+
+.appointment-status-wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.appointment-status-pill {
+  min-width: 138px;
+  height: 34px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 0 18px;
+}
+
+.appointment-status-pill.completed,
+.appointment-status-pill.confirmed {
+  background: #000000;
+  color: #ffffff;
+}
+
+.appointment-status-pill.pending {
+  background: #d7d7d7;
+  color: #111111;
+}
+
+@media (max-width: 1200px) {
+  .doctor-stats-card {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .doctor-stat-item.with-divider::after {
+    display: none;
+  }
+
+  .doctor-appointment-row {
+    grid-template-columns: 1fr;
+    padding: 18px;
+    gap: 12px;
+  }
+
+  .appointment-status-wrap {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .doctor-overview-greeting {
+    font-size: 22px;
+  }
+
+  .doctor-stats-card {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-appointments-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .full-schedule-btn {
+    width: 100%;
+  }
+}

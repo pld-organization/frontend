@@ -1,0 +1,337 @@
+.account-settings-page-fit {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.account-settings-card {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid #e4ebfb;
+  border-radius: 24px;
+  padding: 28px 32px;
+  box-shadow: 0 10px 24px rgba(85, 120, 190, 0.08);
+}
+
+.account-settings-header {
+  padding-bottom: 22px;
+  border-bottom: 1px solid #e4ebfb;
+}
+
+.account-settings-title-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.account-settings-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: #edf4ff;
+  color: #2563ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  flex-shrink: 0;
+}
+
+.account-settings-title-wrap h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1a2c52;
+}
+
+.account-settings-title-wrap p {
+  margin: 6px 0 0;
+  font-size: 16px;
+  color: #7181a6;
+}
+
+.account-settings-form {
+  padding-top: 24px;
+}
+
+.account-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 22px;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field-group label {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2e54;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.readonly-badge {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #edf4ff;
+  color: #2563ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.input-wrap {
+  position: relative;
+  height: 56px;
+  border: 1px solid #d7e2f5;
+  border-radius: 16px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 16px 0 50px;
+  transition: 0.25s ease;
+}
+
+.input-wrap:focus-within {
+  border-color: #2563ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 255, 0.08);
+}
+
+.input-wrap.readonly {
+  background: #f7f9fe;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #2563ff;
+  pointer-events: none;
+}
+
+.input-wrap input,
+.input-wrap select {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  color: #1f2e54;
+  font-family: inherit;
+}
+
+.input-wrap input::placeholder {
+  color: #9aa8c3;
+}
+
+.select-wrap {
+  position: relative;
+  padding-right: 44px;
+}
+
+.select-wrap select {
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  padding-right: 24px;
+}
+
+.select-chevron {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #7181a6;
+  pointer-events: none;
+}
+
+.password-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #e4ebfb;
+}
+
+.password-section h4,
+.login-section h4 {
+  margin: 0 0 18px 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a2c52;
+}
+
+.login-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #e4ebfb;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.password-wrap {
+  position: relative;
+  padding-right: 48px;
+}
+
+.password-wrap input {
+  width: 100%;
+  height: 100%;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #8d9ab3;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-actions {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.save-btn {
+  height: 52px;
+  padding: 0 26px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2d70ff, #1f56de);
+  color: white;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 14px 24px rgba(37, 99, 255, 0.16);
+}
+
+.cancel-btn {
+  height: 52px;
+  padding: 0 28px;
+  border: 1px solid #d7e2f5;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #44557b;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.account-settings-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 6px 4px;
+  color: #5f7096;
+  font-size: 14px;
+}
+
+.account-settings-footer-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.account-settings-footer-links a {
+  color: #5f7096;
+  text-decoration: none;
+}
+
+.empty-desktop-space {
+  visibility: hidden;
+}
+
+@media (max-width: 1024px) {
+  .account-settings-page-fit {
+    height: auto;
+    overflow: visible;
+  }
+
+  .account-settings-card {
+    padding: 22px;
+  }
+
+  .account-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .empty-desktop-space {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .account-settings-card {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .account-settings-title-wrap {
+    gap: 14px;
+  }
+
+  .account-settings-icon-box {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+
+  .account-settings-title-wrap h3 {
+    font-size: 19px;
+  }
+
+  .account-settings-title-wrap p {
+    font-size: 14px;
+  }
+
+  .input-wrap {
+    height: 52px;
+    border-radius: 14px;
+    padding-left: 46px;
+  }
+
+  .input-icon {
+    left: 14px;
+    font-size: 18px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .save-btn,
+  .cancel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

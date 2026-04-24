@@ -1,0 +1,440 @@
+.doctor-profile-page {
+  width: 100%;
+}
+
+.doctor-profile-grid {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 22px;
+}
+
+.doctor-profile-side-card,
+.doctor-profile-main-card {
+  background: #ffffff;
+  border-radius: 30px;
+  border: 1px solid #eef3f8;
+  box-shadow: 0 10px 24px rgba(80, 110, 150, 0.06);
+}
+
+.doctor-profile-side-card {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 760px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 72%, #f3f8ff 100%);
+}
+
+.doctor-profile-side-top {
+  padding: 26px 22px 0;
+  text-align: center;
+}
+
+.doctor-profile-avatar,
+.doctor-profile-avatar-fallback {
+  width: 182px;
+  height: 182px;
+  border-radius: 50%;
+  margin: 0 auto 24px;
+}
+
+.doctor-profile-avatar {
+  object-fit: cover;
+  display: block;
+}
+
+.doctor-profile-avatar-fallback {
+  background: linear-gradient(135deg, #1794ea, #0d72d0);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 58px;
+  font-weight: 800;
+}
+
+.doctor-profile-name {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1.12;
+  font-weight: 700;
+  color: #1d2740;
+}
+
+.doctor-profile-specialty {
+  margin: 16px 0 22px;
+  font-size: 17px;
+  color: #6f7c93;
+}
+
+.doctor-edit-photo-btn {
+  min-width: 176px;
+  height: 46px;
+  border-radius: 16px;
+  border: 1.5px solid #c9d8ec;
+  background: #f9fbfe;
+  color: #2f72c8;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.doctor-edit-photo-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(47, 114, 200, 0.1), rgba(47, 114, 200, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.doctor-edit-photo-btn:hover::before {
+  opacity: 1;
+}
+
+.doctor-edit-photo-btn:hover {
+  border-color: #2f72c8;
+  box-shadow: 0 8px 20px rgba(47, 114, 200, 0.15);
+  transform: translateY(-2px);
+}
+
+.doctor-edit-photo-btn:active {
+  transform: translateY(0);
+}
+
+.doctor-profile-side-decor {
+  height: 290px;
+  background:
+    radial-gradient(circle at 15% 40%, rgba(97, 162, 240, 0.08), transparent 34%),
+    radial-gradient(circle at 72% 65%, rgba(97, 162, 240, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(232, 242, 255, 0.3), rgba(236, 245, 255, 0.85));
+}
+
+.doctor-profile-main-card {
+  padding: 30px 32px 22px;
+}
+
+.doctor-profile-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1f2a44;
+}
+
+.doctor-profile-header p {
+  margin: 12px 0 0;
+  font-size: 16px;
+  color: #74829a;
+  max-width: 620px;
+}
+
+.doctor-profile-divider {
+  height: 1px;
+  background: #edf2f7;
+  margin: 26px 0 24px;
+}
+
+.inside-divider {
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+
+.doctor-profile-section h3 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1f2a44;
+}
+
+.doctor-profile-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.doctor-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.doctor-field label,
+.block-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7790;
+}
+
+.doctor-field input,
+.doctor-field select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid #dbe4ef;
+  border-radius: 16px;
+  background: #fdfefe;
+  padding: 0 18px;
+  font-size: 16px;
+  color: #2a344d;
+  outline: none;
+  font-family: inherit;
+}
+
+.doctor-field input:focus,
+.doctor-field select:focus {
+  border-color: #6faeef;
+  box-shadow: 0 0 0 3px rgba(111, 174, 239, 0.12);
+}
+
+.select-field {
+  position: relative;
+}
+
+.select-field select {
+  appearance: none;
+  padding-right: 42px;
+}
+
+.select-icon {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  font-size: 18px;
+  color: #74829a;
+  pointer-events: none;
+}
+
+.doctor-serial-block {
+  margin-top: 22px;
+}
+
+.doctor-serial-row {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1.1fr 130px 1.2fr;
+  gap: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.doctor-serial-left,
+.doctor-serial-middle,
+.doctor-serial-right {
+  position: relative;
+  height: 46px;
+  border: 1px solid #dbe4ef;
+  background: #fdfefe;
+  display: flex;
+  align-items: center;
+}
+
+.doctor-serial-left {
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+  border-right: none;
+}
+
+.doctor-serial-middle {
+  background: #eef5fc;
+  border-right: none;
+  justify-content: center;
+}
+
+.doctor-serial-right {
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.doctor-serial-left input,
+.doctor-serial-middle input,
+.doctor-serial-right input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  color: #2a344d;
+  font-family: inherit;
+}
+
+.doctor-serial-left input {
+  padding: 0 14px 0 44px;
+}
+
+.doctor-serial-middle input {
+  text-align: center;
+  padding: 0 10px 0 34px;
+  color: #5476a8;
+  font-weight: 600;
+}
+
+.doctor-serial-right input {
+  padding: 0 16px;
+}
+
+.serial-icon {
+  position: absolute;
+  left: 16px;
+  color: #5c7da7;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.serial-middle-icon {
+  position: absolute;
+  left: 18px;
+  color: #5476a8;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+}
+
+.clinic-field {
+  margin-top: 22px;
+}
+
+.doctor-login-btn {
+  margin-top: 20px;
+  min-width: 260px;
+  height: 46px;
+  border-radius: 18px;
+  border: 1.5px solid #d4deea;
+  background: #f9fbfe;
+  color: #5476a8;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.single-field {
+  max-width: 100%;
+}
+
+.doctor-profile-footer-actions {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid #edf2f7;
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.doctor-discard-btn,
+.doctor-save-btn {
+  min-width: 270px;
+  height: 46px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: none;
+}
+
+.doctor-discard-btn {
+  border: 1px solid #d8e2ee;
+  background: #f9fbfd;
+  color: #6f7d95;
+  box-shadow: 0 4px 12px rgba(216, 226, 238, 0.15);
+}
+
+.doctor-discard-btn:hover {
+  background: #f0f4f8;
+  border-color: #c8d4e0;
+  box-shadow: 0 8px 20px rgba(216, 226, 238, 0.25);
+  transform: translateY(-2px);
+}
+
+.doctor-discard-btn:active {
+  transform: translateY(0);
+}
+
+.doctor-save-btn {
+  background: linear-gradient(135deg, #2e95ea 0%, #0f77db 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(33, 127, 221, 0.25);
+}
+
+.doctor-save-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.doctor-save-btn:hover::before {
+  opacity: 1;
+}
+
+.doctor-save-btn:hover {
+  box-shadow: 0 12px 28px rgba(33, 127, 221, 0.35);
+  transform: translateY(-2px);
+}
+
+.doctor-save-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 1150px) {
+  .doctor-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-profile-side-card {
+    min-height: auto;
+  }
+
+  .doctor-profile-side-decor {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .doctor-profile-main-card {
+    padding: 20px;
+  }
+
+  .doctor-profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-serial-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .doctor-serial-left,
+  .doctor-serial-middle,
+  .doctor-serial-right {
+    border-radius: 16px;
+    border-right: 1px solid #dbe4ef;
+  }
+
+  .doctor-profile-footer-actions {
+    flex-direction: column;
+  }
+
+  .doctor-discard-btn,
+  .doctor-save-btn {
+    width: 100%;
+    min-width: 100%;
+  }
+}

@@ -36,6 +36,15 @@ export function isTokenExpired(token) {
   return payload.exp * 1000 <= Date.now() + 5000;
 }
 
+function getCleanString(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function buildDisplayName(firstName, lastName) {
+  const parts = [getCleanString(firstName), getCleanString(lastName)].filter(Boolean);
+  return parts.length ? parts.join(" ") : null;
+}
+
 export function buildUserFromToken(token) {
   const payload = decodeJwtPayload(token);
 
@@ -43,9 +52,18 @@ export function buildUserFromToken(token) {
     return null;
   }
 
+  const firstName = getCleanString(payload.firstName ?? payload.given_name);
+  const lastName = getCleanString(payload.lastName ?? payload.family_name);
+  const name =
+    getCleanString(payload.name ?? payload.fullName) ??
+    buildDisplayName(firstName, lastName);
+
   return {
     id: payload.id ?? payload.sub ?? null,
     email: payload.email ?? null,
     role: payload.role ?? null,
+    name,
+    firstName,
+    lastName,
   };
 }

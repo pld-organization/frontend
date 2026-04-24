@@ -19,12 +19,59 @@ function notifyAuthChange(session) {
   );
 }
 
-function normalizeSession(session) {
+function getCleanString(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function buildDisplayName(firstName, lastName) {
+  const parts = [getCleanString(firstName), getCleanString(lastName)].filter(Boolean);
+  return parts.length ? parts.join(" ") : null;
+}
+
+function compactObject(value) {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== null && entry !== undefined),
+  );
+}
+
+function extractUserData(source) {
+  if (!source || typeof source !== "object") {
+    return {};
+  }
+
+  const firstName = getCleanString(source.firstName);
+  const lastName = getCleanString(source.lastName);
+
+  return compactObject({
+    id: source.id ?? source.sub ?? null,
+    email: getCleanString(source.email),
+    role: getCleanString(source.role),
+    name:
+      getCleanString(source.name ?? source.fullName) ??
+      buildDisplayName(firstName, lastName),
+    firstName,
+    lastName,
+    phone: getCleanString(source.phone ?? source.phoneNumber),
+    gender: getCleanString(source.gender),
+    dateOfBirth: getCleanString(source.dateOfBirth ?? source.birthDate),
+  });
+}
+
+function normalizeSession(session, fallbackUser = null) {
   if (!session?.accessToken && !session?.refreshToken) {
     return null;
   }
 
-  const user = buildUserFromToken(session.accessToken || session.refreshToken);
+  const user = {
+    ...extractUserData(fallbackUser),
+    ...extractUserData(session),
+    ...extractUserData(session.user),
+    ...extractUserData(buildUserFromToken(session.accessToken || session.refreshToken)),
+  };
+
+  if (!user.name) {
+    user.name = buildDisplayName(user.firstName, user.lastName);
+  }
 
   if (!user?.role) {
     return null;
@@ -64,8 +111,8 @@ export function getStoredRefreshToken() {
   return getStoredAuthSession()?.refreshToken ?? null;
 }
 
-export function saveAuthSession(authPayload) {
-  const session = normalizeSession(authPayload);
+export function saveAuthSession(authPayload, fallbackUser = null) {
+  const session = normalizeSession(authPayload, fallbackUser);
 
   if (!session || !canUseStorage()) {
     return null;

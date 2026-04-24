@@ -2,13 +2,22 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import PrivateRoute from "../components/PrivateRoute";
 import PublicOnlyRoute from "../components/PublicOnlyRoute";
 import DashboardRedirectPage from "../pages/DashboardRedirectPage";
-import DoctorDashboardPage from "../pages/DoctorDashboardPage";
+import DoctorOverviewPage from "../pages/DoctorOverviewPage";
 import LoginPage from "../pages/LoginPage";
 import PatientDashboardPage from "../pages/PatientDashboardPage";
 import RegisterPageDoctor from "../pages/RegisterPageDoctor";
 import RegisterPagePatient from "../pages/RegisterPagePatient";
 import RoleSelectionPage from "../pages/RoleSelectionPage";
-
+import AccountSettingsPage from "../pages/AccountSettingsPage";
+import PatientOverviewPage from "../pages/PatientOverviewPage";
+import PatientProfilePage from "../pages/PatientProfilePage";
+import DoctorProfilePage from "../pages/DoctorProfilePage";
+import DoctorAppointmentsPage from "../pages/DoctorAppointmentsPage";
+import PatientAppointmentsPage from "../pages/PatientAppointmentsPage";
+import PatientConsultationPage from "../pages/PatientConsultationPage";
+import PatientConsultationDetailPage from "../pages/PatientConsultationDetailPage";
+import PatientAnalysisPage from "../pages/PatientAnalysisPage";
+import DoctorConsultationPage from "../pages/DoctorConsultationPage";
 function AppRouter() {
   return (
     <Routes>
@@ -45,14 +54,6 @@ function AppRouter() {
         }
       />
       <Route
-        path="/roleSelection"
-        element={
-          <PublicOnlyRoute>
-            <RoleSelectionPage />
-          </PublicOnlyRoute>
-        }
-      />
-      <Route
         path="/dashboard"
         element={
           <PrivateRoute>
@@ -64,7 +65,7 @@ function AppRouter() {
         path="/doctor/dashboard"
         element={
           <PrivateRoute allowedRoles={["DOCTOR"]}>
-            <DoctorDashboardPage />
+            <DoctorOverviewPage />
           </PrivateRoute>
         }
       />
@@ -73,6 +74,87 @@ function AppRouter() {
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>
             <PatientDashboardPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/patient/profile"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/consultation"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientConsultationPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/consultation"
+        element={
+          <PrivateRoute allowedRoles={["DOCTOR"]}>
+            <DoctorConsultationPage />
+          </PrivateRoute>
+        }
+/>
+      <Route
+        path="/consultation/:consultationId"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientConsultationDetailPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/analysis"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientAnalysisPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/doctor/profile"
+        element={
+          <PrivateRoute allowedRoles={["DOCTOR"]}>
+            <DoctorProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/doctor/appointments"
+        element={
+          <PrivateRoute allowedRoles={["DOCTOR"]}>
+            <DoctorAppointmentsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/patient-dashboard"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientOverviewPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <PrivateRoute>
+            <AccountSettingsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/appointments"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientAppointmentsPage />
           </PrivateRoute>
         }
       />

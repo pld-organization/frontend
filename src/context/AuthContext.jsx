@@ -14,6 +14,15 @@ import {
 } from "../utils/authStorage";
 import AuthContextValue from "./AuthContextValue";
 
+function getCleanString(value) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function buildDisplayName(firstName, lastName) {
+  const parts = [getCleanString(firstName), getCleanString(lastName)].filter(Boolean);
+  return parts.length ? parts.join(" ") : null;
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
@@ -66,8 +75,8 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  function applySession(authPayload) {
-    const nextSession = saveAuthSession(authPayload);
+  function applySession(authPayload, fallbackUser = null) {
+    const nextSession = saveAuthSession(authPayload, fallbackUser);
     setSession(nextSession);
     return nextSession;
   }
@@ -79,12 +88,25 @@ export function AuthProvider({ children }) {
 
   async function registerPatient(patientData) {
     const authPayload = await registerPatientRequest(patientData);
-    return applySession(authPayload);
+    return applySession(authPayload, {
+      name: buildDisplayName(patientData.firstName, patientData.lastName),
+      firstName: getCleanString(patientData.firstName),
+      lastName: getCleanString(patientData.lastName),
+      phone: getCleanString(patientData.phoneNumber),
+      gender: getCleanString(patientData.gender),
+      dateOfBirth: getCleanString(patientData.dateOfBirth),
+    });
   }
 
   async function registerDoctor(doctorData) {
     const authPayload = await registerDoctorRequest(doctorData);
-    return applySession(authPayload);
+    return applySession(authPayload, {
+      name: buildDisplayName(doctorData.firstName, doctorData.lastName),
+      firstName: getCleanString(doctorData.firstName),
+      lastName: getCleanString(doctorData.lastName),
+      phone: getCleanString(doctorData.phoneNumber),
+      dateOfBirth: getCleanString(doctorData.dateOfBirth),
+    });
   }
 
   async function logout() {

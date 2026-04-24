@@ -41,7 +41,7 @@ async function refreshStoredSession() {
       .post("/auth/refresh", {
         refreshToken: currentSession.refreshToken,
       })
-      .then(({ data }) => saveAuthSession(data))
+      .then(({ data }) => saveAuthSession(data, currentSession.user))
       .catch((error) => {
         clearAuthSession();
         throw error;
