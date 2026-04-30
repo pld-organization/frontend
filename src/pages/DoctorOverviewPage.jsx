@@ -1,178 +1,275 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import DashboardShell from "../components/DashboardShell";
+import logoSahtekonline from "../assets/logoSahtekonline.png";
 import {
-  FiUsers,
   FiCalendar,
-  FiClipboard,
-  FiCheckCircle,
-  FiClock,
+  FiFileText,
+  FiLock,
+  FiMessageSquare,
+  FiShield,
+  FiUpload,
+  FiUsers,
 } from "react-icons/fi";
+import { RiAiGenerate } from "react-icons/ri";
+import { FaStethoscope } from "react-icons/fa";
+import { BsStars } from "react-icons/bs";
 import "../styles/doctor-overview.css";
 
-const MotionDiv = motion.div;
 const MotionSection = motion.section;
+const MotionButton = motion.button;
+const MotionDiv = motion.div;
 
-const stats = [
+const services = [
   {
-    id: 1,
-    value: "10",
-    label: "Total Patients",
-    icon: <FiUsers />,
+    icon: <RiAiGenerate />,
+    title: "AI Clinical Support",
+    description:
+      "Review AI-supported image analysis to help prioritize and validate clinical decisions.",
   },
   {
-    id: 2,
-    value: "3",
-    label: "Pending Prescriptions",
-    icon: <FiClipboard />,
-  },
-  {
-    id: 3,
-    value: "28",
-    label: "Appointments of the Week",
     icon: <FiCalendar />,
+    title: "Appointment Management",
+    description:
+      "Organize your daily schedule, online consultations and in-person visits with ease.",
   },
   {
-    id: 4,
-    value: "5",
-    label: "Completed Consultations",
-    icon: <FiCheckCircle />,
+    icon: <FiUsers />,
+    title: "Patient Follow-up",
+    description:
+      "Access patient files, consultation history and follow-up notes from one workspace.",
+  },
+  {
+    icon: <FiFileText />,
+    title: "Medical Reports",
+    description:
+      "Prepare structured reports and prescriptions after each consultation.",
+  },
+  {
+    icon: <FiMessageSquare />,
+    title: "Secure Consultation",
+    description:
+      "Communicate with patients through a protected workflow designed for healthcare.",
+  },
+  {
+    icon: <FiLock />,
+    title: "Protected Data",
+    description:
+      "Keep sensitive medical data organized with secure access across the doctor dashboard.",
   },
 ];
 
-const appointments = [
+const steps = [
   {
-    id: 1,
-    time: "10:00",
-    patient: "Dehmani Mohamed",
-    type: "IRL",
-    status: "Completed",
-    statusClass: "completed",
+    number: "1",
+    title: "Review",
+    description: "Open new appointments, consultation requests and patient files.",
   },
   {
-    id: 2,
-    time: "11:15",
-    patient: "Salmi Ahmed",
-    type: "IRL",
-    status: "Pending",
-    statusClass: "pending",
+    number: "2",
+    title: "Analyze",
+    description: "Use AI support to inspect medical images and detect key signals.",
   },
   {
-    id: 3,
-    time: "13:20",
-    patient: "Meziani Lamia",
-    type: "IRL",
-    status: "Pending",
-    statusClass: "pending",
+    number: "3",
+    title: "Validate",
+    description: "Confirm the diagnosis with your clinical judgement.",
   },
   {
-    id: 4,
-    time: "15:30",
-    patient: "Attou Dihia",
-    type: "IRL",
-    status: "Confirmed",
-    statusClass: "confirmed",
-  },
-  {
-    id: 5,
-    time: "20:00",
-    patient: "Ayache Anis",
-    type: "Online",
-    status: "Confirmed",
-    statusClass: "confirmed",
+    number: "4",
+    title: "Follow up",
+    description: "Share reports, prescriptions and next steps with the patient.",
   },
 ];
 
 export default function DoctorOverviewPage() {
   const navigate = useNavigate();
 
-  const handleViewFullSchedule = () => {
+  const handleManageAppointments = () => {
     navigate("/doctor/appointments");
+  };
+
+  const handleOpenPatients = () => {
+    navigate("/patients");
   };
 
   return (
     <DashboardShell title="Dashboard" description="Overview">
       <div className="doctor-overview-page">
-        <MotionDiv
-          className="doctor-overview-greeting"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          Hi Dr.Dehmani, Here is your activity of the day
-        </MotionDiv>
-
         <MotionSection
-          className="doctor-stats-card"
+          className="doctor-hero-section"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.04 }}
+          transition={{ duration: 0.45 }}
         >
-          {stats.map((item, index) => (
-            <div
-              className={`doctor-stat-item ${
-                index !== stats.length - 1 ? "with-divider" : ""
-              }`}
-              key={item.id}
-            >
-              <div className="doctor-stat-text">
-                <h3>{item.value}</h3>
-                <p>{item.label}</p>
-              </div>
+          <div className="doctor-hero-logo-wrap">
+            <img
+              src={logoSahtekonline}
+              alt="Sahtek Online"
+              className="doctor-hero-logo"
+            />
+          </div>
 
-              <div className="doctor-stat-icon">{item.icon}</div>
-            </div>
-          ))}
+          <p className="doctor-hero-platform-text">
+            At Our Doctor Platform <span>Sahtek Online</span>
+          </p>
+
+          <h2 className="doctor-hero-title">
+            We combine innovative <span className="blue-word">AI</span>{" "}
+            technologies with clinical workflows to help doctors manage care
+            faster and with more confidence.
+          </h2>
+
+          <p className="doctor-hero-subtitle">
+            An intelligent medical workspace for appointments, patient follow-up,
+            image analysis review and secure consultation management.
+          </p>
+
+          <div className="doctor-hero-actions">
+            <MotionButton
+              className="doctor-consult-btn"
+              onClick={handleManageAppointments}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaStethoscope />
+              Manage Appointments
+            </MotionButton>
+
+            <MotionButton
+              className="doctor-analysis-btn"
+              onClick={handleOpenPatients}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <BsStars />
+              Patient Files
+            </MotionButton>
+          </div>
+
+          <p className="doctor-hero-note">
+            The AI provides clinical assistance only; final diagnosis and
+            treatment remain under the doctor&apos;s professional responsibility.
+          </p>
         </MotionSection>
 
         <MotionSection
-          className="doctor-appointments-card"
+          className="doctor-stats-section"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.08 }}
+          transition={{ duration: 0.45, delay: 0.08 }}
         >
-          <div className="doctor-appointments-header">
-            <div>
-              <h2>Today&apos;s Appointments</h2>
-              <p>Monday, April 20, 2026</p>
-            </div>
-
-            <button 
-              type="button" 
-              className="full-schedule-btn"
-              onClick={handleViewFullSchedule}
-            >
-              View Full Schedule
-            </button>
+          <div className="doctor-stat-item">
+            <h3>5,000+</h3>
+            <p>Patients Managed</p>
           </div>
 
-          <div className="doctor-appointments-list">
-            {appointments.map((appointment) => (
-              <div className="doctor-appointment-row" key={appointment.id}>
-                <div className="appointment-time-block">
-                  <span className="time-icon">
-                    <FiClock />
-                  </span>
-                  <span className="time-value">{appointment.time}</span>
-                </div>
+          <div className="doctor-stat-item">
+            <h3>20 s</h3>
+            <p>Avg. AI Review Time</p>
+          </div>
 
-                <div className="appointment-patient">
-                  {appointment.patient}
-                </div>
+          <div className="doctor-stat-item">
+            <h3>98%</h3>
+            <p>AI Support Accuracy</p>
+          </div>
 
-                <div className="appointment-type">{appointment.type}</div>
+          <div className="doctor-stat-item">
+            <h3>24/7</h3>
+            <p>Secure Access</p>
+          </div>
+        </MotionSection>
 
-                <div className="appointment-status-wrap">
-                  <span
-                    className={`appointment-status-pill ${appointment.statusClass}`}
-                  >
-                    {appointment.status}
-                  </span>
-                </div>
-              </div>
+        <MotionSection
+          className="doctor-services-section"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.12 }}
+        >
+          <div className="doctor-section-header">
+            <h3>
+              Top <span>services</span> for doctors
+            </h3>
+            <p>
+              Sahtek Online gives doctors a connected digital workspace for
+              consultations, patient records, AI-supported analysis and secure
+              follow-up.
+            </p>
+          </div>
+
+          <div className="doctor-services-grid">
+            {services.map((service, index) => (
+              <MotionDiv
+                className="doctor-service-card"
+                key={service.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.05 }}
+                viewport={{ once: true, amount: 0.2 }}
+                whileHover={{
+                  y: -8,
+                  boxShadow: "0 16px 32px rgba(45, 158, 241, 0.15)",
+                }}
+              >
+                <div className="doctor-service-icon">{service.icon}</div>
+                <h4>{service.title}</h4>
+                <p>{service.description}</p>
+              </MotionDiv>
             ))}
           </div>
         </MotionSection>
+
+        <MotionSection
+          className="doctor-steps-section"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.16 }}
+        >
+          <div className="doctor-section-header">
+            <h3>
+              How <span>doctor workflow</span> works
+            </h3>
+            <p>
+              Move through the full consultation journey from request review to
+              validated care plan.
+            </p>
+          </div>
+
+          <div className="doctor-steps-grid">
+            {steps.map((step, index) => (
+              <MotionDiv
+                className="doctor-step-item"
+                key={step.number}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
+                viewport={{ once: true, amount: 0.2 }}
+              >
+                <MotionDiv
+                  className="doctor-step-number"
+                  whileInView={{ rotate: 360 }}
+                  transition={{ duration: 0.6, delay: index * 0.08 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                >
+                  {step.number}
+                </MotionDiv>
+                <h4>{step.title}</h4>
+                <p>{step.description}</p>
+              </MotionDiv>
+            ))}
+          </div>
+        </MotionSection>
+
+        <footer className="doctor-overview-footer">
+          <span>© 2026 Sahtek Online. All rights reserved.</span>
+
+          <div className="doctor-footer-socials">
+            <FiShield />
+            <FiUpload />
+            <FiMessageSquare />
+            <FiFileText />
+          </div>
+        </footer>
       </div>
     </DashboardShell>
   );

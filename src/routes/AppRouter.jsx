@@ -18,6 +18,10 @@ import PatientConsultationPage from "../pages/PatientConsultationPage";
 import PatientConsultationDetailPage from "../pages/PatientConsultationDetailPage";
 import PatientAnalysisPage from "../pages/PatientAnalysisPage";
 import DoctorConsultationPage from "../pages/DoctorConsultationPage";
+import DoctorPatientsPage from "../pages/DoctorPatientsPage";
+import DoctorSchedulePage from "../pages/DoctorSchedulePage";
+import DoctorSetAvailabilityPage from "../pages/DoctorSetAvailabilityPage";
+import HelpPage from "../pages/HelpPage";
 function AppRouter() {
   return (
     <Routes>
@@ -95,13 +99,13 @@ function AppRouter() {
         }
       />
       <Route
-        path="/consultation"
+        path="/doctor/consultation"
         element={
           <PrivateRoute allowedRoles={["DOCTOR"]}>
             <DoctorConsultationPage />
           </PrivateRoute>
         }
-/>
+      />
       <Route
         path="/consultation/:consultationId"
         element={
@@ -151,10 +155,51 @@ function AppRouter() {
         }
       />
       <Route
+        path="/doctor-appointments"
+        element={
+          <PrivateRoute>
+            <DoctorAppointmentsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
         path="/appointments"
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>
             <PatientAppointmentsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/patients"
+        element={
+          <PrivateRoute>
+            <DoctorPatientsPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/availability"
+        element={
+          <PrivateRoute allowedRoles={["DOCTOR"]}>
+            <DoctorSchedulePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/set-availability"
+        element={
+          <PrivateRoute allowedRoles={["DOCTOR"]}>
+            <DoctorSetAvailabilityPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <PrivateRoute>
+            <HelpPage />
           </PrivateRoute>
         }
       />

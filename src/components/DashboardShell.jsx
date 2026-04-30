@@ -35,13 +35,13 @@ function DashboardShell({ title, description, children }) {
         },
         {
           label: "Appointments",
-          to: "/appointments",
+          to: "/doctor-appointments",
           icon: <FiCalendar />,
         },
         {
-          label: "Patients",
-          to: "/patients",
-          icon: <FiUsers />,
+        label: "Patients",
+        to: "/patients",
+        icon: <FiUsers />,
         },
         {
           label: "Schedule",
@@ -50,7 +50,7 @@ function DashboardShell({ title, description, children }) {
         },
         {
           label: "Consultation",
-          to: "/consultation",
+          to: "/doctor/consultation",
           icon: <FiHeart />,
         },
       ];
