@@ -1,4 +1,5 @@
 import apiClient from "./apiClient";
+import { API_ENDPOINTS } from "../lib/constants/api";
 
 function compactPayload(payload) {
   return Object.fromEntries(
@@ -12,7 +13,7 @@ export async function login(credentials) {
     password: credentials.password,
   });
 
-  const { data } = await apiClient.post("/auth/login", payload, {
+  const { data } = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, payload, {
     skipAuth: true,
     skipAuthRefresh: true,
   });
@@ -32,7 +33,7 @@ export async function registerPatient(patientData) {
     gender: patientData.gender,
   });
 
-  const { data } = await apiClient.post("/auth/register", payload, {
+  const { data } = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, payload, {
     skipAuth: true,
     skipAuthRefresh: true,
   });
@@ -51,7 +52,7 @@ export async function registerDoctor(doctorData) {
     establishment: doctorData.establishment?.trim(),
   });
 
-  const { data } = await apiClient.post("/auth/register", payload, {
+  const { data } = await apiClient.post(API_ENDPOINTS.AUTH.REGISTER, payload, {
     skipAuth: true,
     skipAuthRefresh: true,
   });
@@ -61,7 +62,7 @@ export async function registerDoctor(doctorData) {
 
 export async function logoutSession() {
   const { data } = await apiClient.post(
-    "/auth/logout",
+    API_ENDPOINTS.AUTH.LOGOUT,
     {},
     {
       skipAuthRefresh: true,

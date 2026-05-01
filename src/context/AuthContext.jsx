@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ensureValidAccessToken } from "../services/apiClient";
 import {
   login as loginRequest,
@@ -11,84 +11,84 @@ import {
   getStoredAuthSession,
   saveAuthSession,
   subscribeToAuthChanges,
-} from "../utils/authStorage";
+} from "../services/authStorage";
 import AuthContextValue from "./AuthContextValue";
 
+/** Helper utilities (same as previous version) */
 function getCleanString(value) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
-
 function buildDisplayName(firstName, lastName) {
   const parts = [getCleanString(firstName), getCleanString(lastName)].filter(Boolean);
   return parts.length ? parts.join(" ") : null;
 }
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [isAuthResolved, setIsAuthResolved] = useState(false);
+  // ----- State -----
+  const [session, setSession] = useState(null); // {accessToken, refreshToken, user}
+  const [isAuthResolved, setIsAuthResolved] = useState(false); // false => still loading
 
+  // ----- Helper to persist a session -----
+  const applySession = useCallback((authPayload, fallbackUser = null) => {
+    const next = saveAuthSession(authPayload, fallbackUser);
+    setSession(next);
+    return next;
+  }, []);
+
+  // ----- Initialise from storage -----
   useEffect(() => {
     let isMounted = true;
-
-    async function initializeSession() {
-      const storedSession = getStoredAuthSession();
-
-      if (!storedSession) {
+    async function init() {
+      const stored = getStoredAuthSession();
+      if (!stored) {
         if (isMounted) {
           setSession(null);
           setIsAuthResolved(true);
         }
-
         return;
       }
-
       try {
+        // Ensure token validity – will refresh if needed
         await ensureValidAccessToken();
-
-        if (isMounted) {
-          setSession(getStoredAuthSession());
-        }
+        if (isMounted) setSession(getStoredAuthSession());
       } catch {
         clearAuthSession();
-
-        if (isMounted) {
-          setSession(null);
-        }
+        if (isMounted) setSession(null);
       } finally {
-        if (isMounted) {
-          setIsAuthResolved(true);
-        }
+        if (isMounted) setIsAuthResolved(true);
       }
     }
+    init();
 
-    initializeSession();
-
-    const unsubscribe = subscribeToAuthChanges((nextSession) => {
-      if (isMounted) {
-        setSession(nextSession);
-      }
+    const unsubscribe = subscribeToAuthChanges((next) => {
+      if (isMounted) setSession(next);
     });
-
     return () => {
       isMounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [applySession]);
 
-  function applySession(authPayload, fallbackUser = null) {
-    const nextSession = saveAuthSession(authPayload, fallbackUser);
-    setSession(nextSession);
-    return nextSession;
-  }
+  // ----- Auth actions -----
+  const login = useCallback(async (credentials) => {
+    const payload = await loginRequest(credentials);
+    return applySession(payload);
+  }, [applySession]);
 
-  async function login(credentials) {
-    const authPayload = await loginRequest(credentials);
-    return applySession(authPayload);
-  }
+  const logout = useCallback(async () => {
+    try {
+      if (session?.accessToken) await logoutRequest();
+    } catch {
+      // ignore backend errors, clear locally anyway
+    } finally {
+      clearAuthSession();
+      setSession(null);
+    }
+  }, [session]);
 
-  async function registerPatient(patientData) {
-    const authPayload = await registerPatientRequest(patientData);
-    return applySession(authPayload, {
+  const registerPatient = useCallback(async (patientData) => {
+    const payload = await registerPatientRequest(patientData);
+    return applySession(payload, {
       name: buildDisplayName(patientData.firstName, patientData.lastName),
       firstName: getCleanString(patientData.firstName),
       lastName: getCleanString(patientData.lastName),
@@ -96,50 +96,61 @@ export function AuthProvider({ children }) {
       gender: getCleanString(patientData.gender),
       dateOfBirth: getCleanString(patientData.dateOfBirth),
     });
-  }
+  }, [applySession]);
 
-  async function registerDoctor(doctorData) {
-    const authPayload = await registerDoctorRequest(doctorData);
-    return applySession(authPayload, {
+  const registerDoctor = useCallback(async (doctorData) => {
+    const payload = await registerDoctorRequest(doctorData);
+    return applySession(payload, {
       name: buildDisplayName(doctorData.firstName, doctorData.lastName),
       firstName: getCleanString(doctorData.firstName),
       lastName: getCleanString(doctorData.lastName),
       phone: getCleanString(doctorData.phoneNumber),
       dateOfBirth: getCleanString(doctorData.dateOfBirth),
     });
-  }
+  }, [applySession]);
 
-  async function logout() {
-    try {
-      if (session?.accessToken) {
-        await logoutRequest();
-      }
-    } catch {
-      // Clear local session even if the backend session is already expired.
-    } finally {
-      clearAuthSession();
-      setSession(null);
-    }
-  }
+  // ----- New utilities -----
+  const refreshUser = useCallback(async () => {
+    // Force token validation then re‑read stored session
+    await ensureValidAccessToken({ forceRefresh: true });
+    const refreshed = getStoredAuthSession();
+    setSession(refreshed);
+    return refreshed;
+  }, []);
 
-  function isAuthenticated() {
-    return Boolean(session?.accessToken && session?.user);
-  }
+  const hasRole = useCallback(
+    (role) => Boolean(session?.user?.role && session.user.role === role),
+    [session]
+  );
+
+  // ----- Compatibility helpers -----
+  const isAuthenticated = useCallback(() => Boolean(session?.accessToken && session?.user), [session]);
+
+  // ----- Context value -----
+  const contextValue = {
+    // Core data
+    user: session?.user ?? null,
+    tokens: {
+      accessToken: session?.accessToken ?? null,
+      refreshToken: session?.refreshToken ?? null,
+    },
+    isLoggedIn: isAuthenticated(),
+    loading: !isAuthResolved,
+    // Auth actions
+    login,
+    logout,
+    registerPatient,
+    registerDoctor,
+    // New helpers
+    refreshUser,
+    hasRole,
+    // Legacy helpers kept for existing pages
+    isAuthenticated,
+    isAuthResolved,
+  };
 
   return (
-    <AuthContextValue.Provider
-      value={{
-        user: session?.user ?? null,
-        accessToken: session?.accessToken ?? null,
-        refreshToken: session?.refreshToken ?? null,
-        login,
-        logout,
-        registerPatient,
-        registerDoctor,
-        isAuthenticated,
-        isAuthResolved,
-      }}
-    >
+    <AuthContextValue.Provider value={contextValue}>
       {children}
     </AuthContextValue.Provider>
   );

@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import { getRoleDashboardPath } from "../utils/authHelpers";
 
 function DashboardRedirectPage() {

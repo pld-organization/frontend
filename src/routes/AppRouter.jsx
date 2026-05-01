@@ -1,26 +1,26 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import PrivateRoute from "../components/PrivateRoute";
-import PublicOnlyRoute from "../components/PublicOnlyRoute";
+import PrivateRoute from "./PrivateRoute";
+import PublicOnlyRoute from "./PublicOnlyRoute";
 import DashboardRedirectPage from "../pages/DashboardRedirectPage";
-import DoctorOverviewPage from "../pages/DoctorOverviewPage";
-import LoginPage from "../pages/LoginPage";
-import PatientDashboardPage from "../pages/PatientDashboardPage";
-import RegisterPageDoctor from "../pages/RegisterPageDoctor";
-import RegisterPagePatient from "../pages/RegisterPagePatient";
-import RoleSelectionPage from "../pages/RoleSelectionPage";
-import AccountSettingsPage from "../pages/AccountSettingsPage";
-import PatientOverviewPage from "../pages/PatientOverviewPage";
-import PatientProfilePage from "../pages/PatientProfilePage";
-import DoctorProfilePage from "../pages/DoctorProfilePage";
-import DoctorAppointmentsPage from "../pages/DoctorAppointmentsPage";
-import PatientAppointmentsPage from "../pages/PatientAppointmentsPage";
-import PatientConsultationPage from "../pages/PatientConsultationPage";
-import PatientConsultationDetailPage from "../pages/PatientConsultationDetailPage";
-import PatientAnalysisPage from "../pages/PatientAnalysisPage";
-import DoctorConsultationPage from "../pages/DoctorConsultationPage";
-import DoctorPatientsPage from "../pages/DoctorPatientsPage";
-import DoctorSchedulePage from "../pages/DoctorSchedulePage";
-import DoctorSetAvailabilityPage from "../pages/DoctorSetAvailabilityPage";
+import DoctorOverviewPage from "../features/dashboard/doctor/DoctorOverviewPage";
+import LoginPage from "../features/auth/LoginPage";
+import PatientDashboardPage from "../features/dashboard/patient/PatientDashboardPage";
+import RegisterDoctorPage from "../features/auth/RegisterDoctorPage";
+import RegisterPatientPage from "../features/auth/RegisterPatientPage";
+import RoleSelectionPage from "../features/auth/RoleSelectionPage";
+import AccountSettingsPage from "../features/profile/AccountSettingsPage";
+import PatientOverviewPage from "../features/dashboard/patient/PatientOverviewPage";
+import PatientProfilePage from "../features/profile/PatientProfilePage";
+import DoctorProfilePage from "../features/profile/DoctorProfilePage";
+import DoctorAppointmentsPage from "../features/appointments/DoctorAppointmentsPage";
+import PatientAppointmentsPage from "../features/appointments/PatientAppointmentsPage";
+import ConsultationListPage from "../features/consultations/ConsultationListPage";
+import ConsultationDetailsPage from "../features/consultations/ConsultationDetailsPage";
+import PatientAnalysisPage from "../features/analysis/PatientAnalysisPage";
+import DoctorConsultationPage from "../features/consultations/DoctorConsultationPage";
+import DoctorPatientsPage from "../features/consultations/DoctorPatientsPage";
+import DoctorSchedulePage from "../features/appointments/DoctorSchedulePage";
+import DoctorSetAvailabilityPage from "../features/appointments/DoctorSetAvailabilityPage";
 import HelpPage from "../pages/HelpPage";
 function AppRouter() {
   return (
@@ -45,7 +45,7 @@ function AppRouter() {
         path="/register/doctor"
         element={
           <PublicOnlyRoute>
-            <RegisterPageDoctor />
+            <RegisterDoctorPage />
           </PublicOnlyRoute>
         }
       />
@@ -53,7 +53,7 @@ function AppRouter() {
         path="/register/patient"
         element={
           <PublicOnlyRoute>
-            <RegisterPagePatient />
+            <RegisterPatientPage />
           </PublicOnlyRoute>
         }
       />
@@ -94,7 +94,7 @@ function AppRouter() {
         path="/consultation"
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>
-            <PatientConsultationPage />
+            <ConsultationListPage />
           </PrivateRoute>
         }
       />
@@ -110,7 +110,7 @@ function AppRouter() {
         path="/consultation/:consultationId"
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>
-            <PatientConsultationDetailPage />
+            <ConsultationDetailsPage />
           </PrivateRoute>
         }
       />

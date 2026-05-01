@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardShell from "../components/DashboardShell";
+import DashboardShell from "../components/layout/DashboardShell";
 import {
   FiSearch,
   FiChevronDown,
@@ -11,6 +11,8 @@ import {
   FiBookOpen,
 } from "react-icons/fi";
 import "../styles/help-page.css";
+
+void motion;
 
 const faqs = [
   {

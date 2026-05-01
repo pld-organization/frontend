@@ -3,7 +3,7 @@ import {
   clearAuthSession,
   getStoredAuthSession,
   saveAuthSession,
-} from "../utils/authStorage";
+} from "./authStorage";
 import { isTokenExpired } from "../utils/jwt";
 
 const API_BASE_URL =
