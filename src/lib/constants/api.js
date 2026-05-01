@@ -23,18 +23,13 @@ export const API_ENDPOINTS = {
     BY_ID_AUTH: (id) => `/auth/doctor/${id}`,
   },
 
-  RESERVATION: {
-    CREATE_SCHEDULE:               "/reservation/create-schedule",
-    CREATE:                        "/reservation/create",
-    CANCEL:       (id)          => `/reservation/cancel/${id}`,
-    BY_ID:        (id)          => `/reservation/${id}`,
-    BY_DOCTOR:    (doctorId)    => `/reservation/doctor/${doctorId}`,
-    BY_PATIENT:   (patientId)   => `/reservation/patient/${patientId}`,
-    AVAILABLE_SLOTS: (doctorId) => `/reservation/available/${doctorId}`,
-    UPCOMING_DOCTOR:  (id)      => `/reservation/upcoming/doctor/${id}`,
-    UPCOMING_PATIENT: (id)      => `/reservation/upcoming/patient/${id}`,
-    MEETINGS_DOCTOR:  (id)      => `/reservation/meetings/doctor/${id}`,
-    MEETINGS_PATIENT: (id)      => `/reservation/meetings/patient/${id}`,
+  APPOINTMENTS: {
+    LIST: "/appointments",
+    MY: "/appointments/my",
+    CREATE: "/appointments",
+    BY_ID: (id) => `/appointments/${id}`,
+    CANCEL: (id) => `/appointments/${id}/cancel`,
+    DELETE: (id) => `/appointments/${id}`,
   },
 
   CONSULTATIONS: {

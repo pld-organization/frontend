@@ -1,9 +1,8 @@
 import { getStoredAccessToken } from "../../../services/authStorage"; 
-import { API_ENDPOINTS } from "../../../lib/constants/api";
+import { R, RESERVATION_URL } from "./reservationEndpoints";
 
-const BASE_URL = import.meta.env.VITE_RESERVATION_API_URL ?? "https://reservation-service-f8ik.onrender.com";
+const BASE_URL = RESERVATION_URL;
 
-const R = API_ENDPOINTS.RESERVATION;
 
 function authHeaders() {
   const token = getStoredAccessToken();

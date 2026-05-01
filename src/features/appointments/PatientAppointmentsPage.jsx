@@ -12,6 +12,7 @@ import {
 } from "react-icons/fi";
 import AuthContextValue from "../../context/AuthContextValue";
 import apiClient from "../../services/apiClient";
+import { R, RESERVATION_URL } from "./data/reservationEndpoints";
 import { API_ENDPOINTS } from "../../lib/constants/api";
 import { getAvailableSlots, createAppointment } from "./data/appointmentService";
 import "../../styles/patient-appointments.css";
@@ -83,7 +84,7 @@ useEffect(() => {
       const slotChecks = await Promise.allSettled(
         allDoctors.map((doc) =>
           fetch(
-            `${import.meta.env.VITE_RESERVATION_API_URL ?? "https://reservation-service-f8ik.onrender.com"}${API_ENDPOINTS.RESERVATION.AVAILABLE_SLOTS(doc.id)}`,
+            `${RESERVATION_URL}${R.AVAILABLE_SLOTS(doc.id)}`,
             {
               headers: {
                 "Content-Type": "application/json",
