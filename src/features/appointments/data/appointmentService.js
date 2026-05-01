@@ -1,96 +1,110 @@
-import apiClient from "../../../services/apiClient";
+import { getStoredAccessToken } from "../../../services/authStorage"; 
 import { API_ENDPOINTS } from "../../../lib/constants/api";
 
-export async function getPatientAppointments() {
-  try {
-    const { data } = await apiClient.get(API_ENDPOINTS.APPOINTMENTS.MY);
-    return data;
-  } catch (error) {
-    console.warn("API failed, using fallback data for appointments", error);
-    // TODO: Remove fallback data once backend is confirmed
-    return [
-      {
-        id: "1",
-        doctor: { firstName: "Sarah", lastName: "Bennani", speciality: "Cardiologist" },
-        date: "2026-05-15",
-        time: "10:00",
-        type: "consultation",
-        status: "confirmed",
-        reason: "Routine checkup"
-      },
-      {
-        id: "2",
-        doctor: { firstName: "Amine", lastName: "Tazi", speciality: "Dermatologist" },
-        date: "2026-05-20",
-        time: "14:30",
-        type: "online",
-        status: "pending",
-        reason: "Skin rash check"
-      }
-    ];
-  }
+const BASE_URL = import.meta.env.VITE_RESERVATION_API_URL ?? "https://reservation-service-f8ik.onrender.com";
+
+const R = API_ENDPOINTS.RESERVATION;
+
+function authHeaders() {
+  const token = getStoredAccessToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
 }
 
-export async function cancelAppointment(id) {
-  try {
-    const { data } = await apiClient.put(API_ENDPOINTS.APPOINTMENTS.CANCEL(id));
-    return data;
-  } catch (error) {
-    console.warn("Cancel API failed, simulating success", error);
-    return { success: true };
+async function apiFetch(path, options = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      ...authHeaders(),
+      ...(options.headers ?? {}),
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw Object.assign(new Error(error.message ?? "Request failed"), {
+      response: { status: res.status, data: error },
+    });
   }
+
+  // 204 No Content
+  if (res.status === 204) return null;
+  return res.json();
 }
 
-export async function deleteAppointment(id) {
-  try {
-    const { data } = await apiClient.delete(API_ENDPOINTS.APPOINTMENTS.DELETE(id));
-    return data;
-  } catch (error) {
-    console.warn("Delete API failed, simulating success", error);
-    return { success: true };
-  }
+export async function getPatientAppointments(patientId) {
+  return apiFetch(R.BY_PATIENT(patientId));
 }
 
-export async function getAvailableDoctors() {
-  try {
-    const { data } = await apiClient.get(API_ENDPOINTS.DOCTORS.AVAILABLE);
-    return data;
-  } catch (error) {
-    console.warn("API failed, using fallback data for available doctors", error);
-    // TODO: Remove fallback
-    return [
-      {
-        id: "d1",
-        firstName: "Sarah",
-        lastName: "Bennani",
-        speciality: "Cardiologist",
-        establishment: "Clinique Riad"
-      },
-      {
-        id: "d2",
-        firstName: "Amine",
-        lastName: "Tazi",
-        speciality: "Dermatologist",
-        establishment: "Hopital Cheikh Zaid"
-      },
-      {
-        id: "d3",
-        firstName: "Karim",
-        lastName: "Naciri",
-        speciality: "Pediatrician",
-        establishment: "Clinique Atlas"
-      }
-    ];
-  }
+export async function createAppointment({ doctorId, patientId, reservationDay, reservationTime, reason = "" }) {
+  return apiFetch(R.CREATE, {
+    method: "POST",
+    body: JSON.stringify({ doctorId, patientId, reservationDay, reservationTime, reason }),
+  });
 }
 
-export async function createAppointment(appointmentData) {
+export async function cancelAppointment(reservationId) {
+  return apiFetch(R.CANCEL(reservationId), { method: "POST" });
+}
+
+export async function getPatientMeetingUrls(patientId) {
+  return apiFetch(R.MEETINGS_PATIENT(patientId));
+}
+
+export async function getPatientUpcomingMeetings(patientId) {
+  return apiFetch(R.UPCOMING_PATIENT(patientId));
+}
+
+export async function getDoctorAppointments(doctorId) {
+  return apiFetch(R.BY_DOCTOR(doctorId));
+}
+
+export async function getDoctorUpcomingMeetings(doctorId) {
+  return apiFetch(R.UPCOMING_DOCTOR(doctorId));
+}
+
+export async function getDoctorMeetingUrls(doctorId) {
+  return apiFetch(R.MEETINGS_DOCTOR(doctorId));
+}
+
+export async function createScheduleSlot({ doctorId, dayOfWeek, startTime, endTime, appointmenttype }) {
+  return apiFetch(R.CREATE_SCHEDULE, {
+    method: "POST",
+    body: JSON.stringify({ doctorId, dayOfWeek, startTime, endTime, appointmenttype }),
+  });
+}
+
+export async function saveSchedule(doctorId, slots) {
+  let existingSlots = [];
   try {
-    const { data } = await apiClient.post(API_ENDPOINTS.APPOINTMENTS.CREATE, appointmentData);
-    return data;
-  } catch (error) {
-    console.warn("Create API failed, simulating success", error);
-    // TODO: Remove fallback
-    return { success: true, id: Date.now().toString(), ...appointmentData, status: "pending" };
+    existingSlots = await getAvailableSlots(doctorId);
+  } catch {
+    existingSlots = [];
   }
+
+  const isMatch = (existing, incoming) =>
+    existing.dayOfWeek === incoming.dayOfWeek &&
+    existing.startTime === incoming.startTime &&
+    existing.endTime   === incoming.endTime   &&
+    existing.appointmenttype === incoming.appointmenttype;
+
+  const newSlots = slots.filter(
+    (incoming) => !existingSlots.some((ex) => isMatch(ex, incoming))
+  );
+
+  if (newSlots.length === 0) return existingSlots;
+
+  return Promise.all(
+    newSlots.map((slot) => createScheduleSlot({ doctorId, ...slot }))
+  );
+}
+
+export async function getAvailableSlots(doctorId) {
+  return apiFetch(R.AVAILABLE_SLOTS(doctorId));
+}
+
+export async function getReservationById(reservationId) {
+  return apiFetch(R.BY_ID(reservationId));
 }

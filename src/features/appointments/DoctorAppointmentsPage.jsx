@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardShell from "../../components/layout/DashboardShell";
 import {
@@ -17,23 +17,52 @@ import {
   FiMoreVertical,
   FiChevronDown,
 } from "react-icons/fi";
+import AuthContextValue from "../../context/AuthContextValue";
+import {
+  getDoctorAppointments,
+  cancelAppointment,
+} from "./data/appointmentService";
 import "../../styles/doctor-appointments.css";
 
 void motion;
 
-const initialAppointments = [
-  { id: 1, time: "08:00", patient: "Salmi Ahmed", type: "IRL", status: "Completed", action: "View" },
-  { id: 2, time: "08:30", patient: "Amina Boudjemaa", type: "IRL", status: "Cancelled", action: "View" },
-  { id: 3, time: "09:00", patient: "Nabil Haddad", type: "Online", status: "Confirmed", action: "Join" },
-  { id: 4, time: "09:30", patient: "Walid Benkhaled", type: "IRL", status: "Pending", action: "Start" },
-  { id: 5, time: "10:00", patient: "Yousra Amrani", type: "Online", status: "Confirmed", action: "Join" },
-  { id: 6, time: "10:30", patient: "Karim Ziani", type: "IRL", status: "Pending", action: "Start" },
-  { id: 7, time: "11:00", patient: "Lydia Mansouri", type: "Online", status: "Pending", action: "Start" },
-  { id: 8, time: "11:30", patient: "Fouad Belaid", type: "IRL", status: "Pending", action: "Start" },
-];
+/** Map a Reservation entity from the backend to the UI row shape */
+function mapReservationToRow(r) {
+  const isOnline = r.schedule?.appointmenttype === "ONLINE";
+  const isActive = r.reservationStatus;
+  return {
+    id: r.id,
+    time: r.schedule?.startTime ?? "—",
+    // patientId is a UUID; display it shortened until users service enriches it
+    patient: r.patientId ?? "Patient",
+    type: isOnline ? "Online" : "IRL",
+    status: isActive ? "Confirmed" : "Cancelled",
+    action: isActive ? (isOnline ? "Join" : "Start") : "View",
+    meetingUrl: r.meetingUrl ?? null,
+    raw: r,
+  };
+}
 
 export default function DoctorAppointmentsPage() {
-  const [appointmentsList, setAppointmentsList] = useState(initialAppointments);
+  const { user } = useContext(AuthContextValue);
+
+  const [appointmentsList, setAppointmentsList] = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    setLoadingList(true);
+    getDoctorAppointments(user.id)
+      .then((data) => {
+        const rows = Array.isArray(data) ? data.map(mapReservationToRow) : [];
+        setAppointmentsList(rows);
+      })
+      .catch(() => {
+        // Non-blocking — show empty state rather than crashing
+        setAppointmentsList([]);
+      })
+      .finally(() => setLoadingList(false));
+  }, [user?.id]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(null);
   
@@ -51,31 +80,38 @@ export default function DoctorAppointmentsPage() {
   };
 
   const handleActionClick = (id) => {
+    const app = appointmentsList.find((a) => a.id === id);
+    // For online appointments with a meeting URL, open the Jitsi room
+    if ((app?.action === "Join" || app?.action === "Start") && app?.meetingUrl) {
+      window.open(app.meetingUrl, "_blank", "noopener,noreferrer");
+    }
     setAppointmentsList((prev) =>
-      prev.map((app) => {
-        if (app.id === id) {
-          if (app.action === "Start" || app.action === "Join") {
-            return { ...app, status: "In Progress", action: "Finish" };
+      prev.map((a) => {
+        if (a.id === id) {
+          if (a.action === "Start" || a.action === "Join") {
+            return { ...a, status: "In Progress", action: "Finish" };
           }
-          if (app.action === "Finish") {
-            return { ...app, status: "Completed", action: "View" };
+          if (a.action === "Finish") {
+            return { ...a, status: "Completed", action: "View" };
           }
         }
-        return app;
+        return a;
       })
     );
   };
 
-  const handleCancel = (id) => {
-    setAppointmentsList((prev) =>
-      prev.map((app) => {
-        if (app.id === id && app.status !== "Completed" && app.status !== "Cancelled") {
-          return { ...app, status: "Cancelled", action: "View" };
-        }
-        return app;
-      })
-    );
+  const handleCancel = async (id) => {
     setShowDropdown(null);
+    try {
+      await cancelAppointment(id);
+      setAppointmentsList((prev) =>
+        prev.map((app) =>
+          app.id === id ? { ...app, status: "Cancelled", action: "View" } : app
+        )
+      );
+    } catch {
+      alert("Failed to cancel appointment. Please try again.");
+    }
   };
 
   const filteredAppointments = useMemo(() => {
