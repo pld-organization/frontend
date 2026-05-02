@@ -377,7 +377,7 @@ export default function DoctorSchedulePage() {
                                       <FiUser size={11} />
                                       {r.patientId.slice(0, 8)}…
                                     </p>
-                                    {r.meetingUrl && (
+                                    {r.meetingUrl && r.type === "Online" && (
                                       <a
                                         href={r.meetingUrl}
                                         target="_blank"

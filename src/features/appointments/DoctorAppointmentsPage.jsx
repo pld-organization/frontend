@@ -37,8 +37,8 @@ function mapReservationToRow(r) {
     patient: r.patientId ?? "Patient",
     type: isOnline ? "Online" : "IRL",
     status: isActive ? "Confirmed" : "Cancelled",
-    action: isActive ? (isOnline ? "Join" : "Start") : "View",
-    meetingUrl: r.meetingUrl ?? null,
+    action: isActive ? (isOnline ? "Join" : "View") : "View",
+    meetingUrl: isOnline ? (r.meetingUrl ?? null) : null,
     raw: r,
   };
 }
