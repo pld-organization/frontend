@@ -21,6 +21,7 @@ import AuthContextValue from "../../context/AuthContextValue";
 import {
   getDoctorAppointments,
   cancelAppointment,
+  getReservationById,
 } from "./data/appointmentService";
 import "../../styles/doctor-appointments.css";
 
@@ -53,16 +54,28 @@ export default function DoctorAppointmentsPage() {
     if (!user?.id) return;
     setLoadingList(true);
     getDoctorAppointments(user.id)
-      .then((data) => {
-        const rows = Array.isArray(data) ? data.map(mapReservationToRow) : [];
-        setAppointmentsList(rows);
+     .then(async (data) => {
+        const basic = Array.isArray(data) ? data : [];
+
+        const detailed = await Promise.allSettled(
+          basic.map((r) =>
+            getReservationById(r.id)
+              .then((full) => full)
+              .catch(() => r)
+          )
+        );
+
+        const full = detailed
+          .filter((r) => r.status === "fulfilled")
+          .map((r) => r.value);
+
+        const rows = full.map(mapReservationToRow);
+       setAppointmentsList(rows);
       })
-      .catch(() => {
-        // Non-blocking — show empty state rather than crashing
-        setAppointmentsList([]);
-      })
+      .catch(() => setAppointmentsList([]))
       .finally(() => setLoadingList(false));
   }, [user?.id]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(null);
   
@@ -80,25 +93,30 @@ export default function DoctorAppointmentsPage() {
   };
 
   const handleActionClick = (id) => {
-    const app = appointmentsList.find((a) => a.id === id);
-    // For online appointments with a meeting URL, open the Jitsi room
-    if ((app?.action === "Join" || app?.action === "Start") && app?.meetingUrl) {
-      window.open(app.meetingUrl, "_blank", "noopener,noreferrer");
-    }
-    setAppointmentsList((prev) =>
-      prev.map((a) => {
-        if (a.id === id) {
-          if (a.action === "Start" || a.action === "Join") {
-            return { ...a, status: "In Progress", action: "Finish" };
-          }
-          if (a.action === "Finish") {
-            return { ...a, status: "Completed", action: "View" };
-          }
+  const app = appointmentsList.find((a) => a.id === id);
+
+  // View — no action needed, could navigate to detail page later
+  if (app?.action === "View") return;
+
+  // For online appointments with a meeting URL, open the Jitsi room
+  if ((app?.action === "Join" || app?.action === "Start") && app?.meetingUrl) {
+    window.open(app.meetingUrl, "_blank", "noopener,noreferrer");
+  }
+
+  setAppointmentsList((prev) =>
+    prev.map((a) => {
+      if (a.id === id) {
+        if (a.action === "Start" || a.action === "Join") {
+          return { ...a, status: "In Progress", action: "Finish" };
         }
-        return a;
-      })
-    );
-  };
+        if (a.action === "Finish") {
+          return { ...a, status: "Completed", action: "View" };
+        }
+      }
+      return a;
+    })
+  );
+};
 
   const handleCancel = async (id) => {
     setShowDropdown(null);
