@@ -35,6 +35,21 @@ async function apiFetch(path, options = {}) {
   return res.json();
 }
 
+export async function getDoctorById(doctorId) {
+  const token = getStoredAccessToken();
+  const res = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.DOCTORS.BY_ID(doctorId)}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }
+  );
+  if (!res.ok) throw new Error("Doctor not found");
+  return res.json(); // { firstName, lastName, ... }
+}
+
 /** Fetch patient profile via Vite proxy (dev) or direct (prod) — avoids CORS. */
 export async function getPatientById(patientId) {
   const token = getStoredAccessToken();

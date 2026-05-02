@@ -31,45 +31,102 @@ import "../../styles/doctor-appointments.css";
 
 void motion;
 
-/** Map a Reservation entity to a UI row.
- *  @param {object} r       - raw reservation from reservation service
- *  @param {object|null} p  - patient profile from auth service { firstName, lastName, ... }
- */
+// ─── Constants & pure helpers ────────────────────────────────────────────────
+
+const DAYS = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+
+function getTodayDayOfWeek() {
+  return DAYS[new Date().getDay()];
+}
+
+function getTodayLabel() {
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year:    "numeric",
+    month:   "long",
+    day:     "numeric",
+  });
+}
+
+function canJoinAppointment(dayOfWeek, startTime, windowMins = 5) {
+  if (!dayOfWeek || !startTime) return false;
+
+  const now        = new Date();
+  const todayIndex = now.getDay();
+  const apptIndex  = DAYS.indexOf(dayOfWeek.toUpperCase());
+  if (apptIndex === -1 || apptIndex !== todayIndex) return false;
+
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const apptStart   = new Date(now);
+  apptStart.setHours(hours, minutes, 0, 0);
+
+  const windowStart = new Date(apptStart.getTime() - windowMins * 60_000);
+  const windowEnd   = new Date(apptStart.getTime() + 60 * 60_000);
+
+  return now >= windowStart && now <= windowEnd;
+}
+
 function mapReservationToRow(r, p = null) {
   const isOnline = r.schedule?.appointmenttype === "ONLINE";
   const isActive = r.reservationStatus;
 
-  // Auth service returns firstName / lastName (camelCase)
   const firstName = p?.firstName ?? p?.firstname ?? p?.first_name ?? "";
   const lastName  = p?.lastName  ?? p?.lastname  ?? p?.last_name  ?? "";
   const fullName  = [firstName, lastName].filter(Boolean).join(" ") || null;
 
   return {
-    id: r.id,
-    time: r.schedule?.startTime ?? "—",
-    endTime: r.schedule?.endTime ?? null,
-    date: r.schedule?.date ?? null,
-    patient: fullName ?? r.patientId ?? "Patient",
-    patientId: r.patientId ?? null,
+    id:               r.id,
+    time:             r.schedule?.startTime  ?? "—",
+    endTime:          r.schedule?.endTime    ?? null,
+    date:             r.schedule?.dayOfWeek  ?? null,
+    patient:          fullName ?? r.patientId ?? "Patient",
+    patientId:        r.patientId            ?? null,
     patientFirstName: firstName || null,
     patientLastName:  lastName  || null,
-    type: isOnline ? "Online" : "IRL",
-    status: isActive ? "Confirmed" : "Cancelled",
-    action: isActive ? (isOnline ? "Join" : "View") : "View",
-    meetingUrl: isOnline ? (r.meetingUrl ?? null) : null,
-    duration: r.schedule?.duration ?? null,
-    notes: r.notes ?? null,
-    raw: r,
+    type:             isOnline ? "Online" : "IRL",
+    status:           isActive ? "Confirmed" : "Cancelled",
+    action:           isActive ? (isOnline ? "Join" : "View") : "View",
+    meetingUrl:       isOnline ? (r.meetingUrl ?? null) : null,
+    duration:         r.schedule?.duration   ?? null,
+    notes:            r.notes               ?? null,
+    raw:              r,
   };
 }
 
-// ─── Appointment Detail Modal ────────────────────────────────────────────────
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function SectionLabel({ children }) {
+  return (
+    <p style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", margin: "20px 0 12px" }}>
+      {children}
+    </p>
+  );
+}
+
+function InfoItem({ label, value, icon, valueStyle = {} }) {
+  return (
+    <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "12px 14px" }}>
+      <label style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        {icon}
+        {label}
+      </label>
+      <span style={{ fontSize: "14px", color: "#1e293b", fontWeight: 600, ...valueStyle }}>
+        {value ?? "—"}
+      </span>
+    </div>
+  );
+}
 
 function AppointmentDetailModal({ appointment, onClose, onCancel }) {
   if (!appointment) return null;
 
-  const canCancel =
-    appointment.status !== "Cancelled" && appointment.status !== "Completed";
+  const canCancel = appointment.status !== "Cancelled" && appointment.status !== "Completed";
+
+  const joinable =
+    appointment.type === "Online" &&
+    !!appointment.meetingUrl &&
+    appointment.status !== "Cancelled" &&
+    canJoinAppointment(appointment.date, appointment.time);
 
   const handleJoin = () => {
     if (appointment.meetingUrl) {
@@ -77,17 +134,16 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
     }
   };
 
-  // Close on backdrop click
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) onClose();
   };
 
   const statusColor = {
-    Confirmed: "#16a34a",
-    Cancelled: "#dc2626",
-    Completed: "#2563eb",
+    Confirmed:     "#16a34a",
+    Cancelled:     "#dc2626",
+    Completed:     "#2563eb",
     "In Progress": "#d97706",
-    Pending: "#9333ea",
+    Pending:       "#9333ea",
   }[appointment.status] ?? "#64748b";
 
   return (
@@ -99,16 +155,12 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
         exit={{ opacity: 0 }}
         onClick={handleBackdropClick}
         style={{
-          position: "fixed",
-          inset: 0,
+          position: "fixed", inset: 0,
           background: "rgba(15,23,42,0.5)",
           backdropFilter: "blur(5px)",
           WebkitBackdropFilter: "blur(5px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 200,
-          padding: "16px",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          zIndex: 200, padding: "16px",
         }}
       >
         <motion.div
@@ -118,43 +170,17 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
           exit={{ opacity: 0, y: 20, scale: 0.97 }}
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           style={{
-            background: "#fff",
-            borderRadius: "20px",
-            width: "100%",
-            maxWidth: "520px",
+            background: "#fff", borderRadius: "20px",
+            width: "100%", maxWidth: "520px",
             boxShadow: "0 32px 80px rgba(0,0,0,0.2)",
-            overflow: "hidden",
-            maxHeight: "90vh",
-            overflowY: "auto",
+            overflow: "hidden", maxHeight: "90vh", overflowY: "auto",
           }}
         >
           {/* Header */}
-          <div
-            style={{
-              background: "linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%)",
-              padding: "28px 28px 22px",
-              position: "relative",
-            }}
-          >
+          <div style={{ background: "linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%)", padding: "28px 28px 22px", position: "relative" }}>
             <button
               onClick={onClose}
-              style={{
-                position: "absolute",
-                top: "18px",
-                right: "18px",
-                background: "rgba(255,255,255,0.18)",
-                border: "none",
-                color: "#fff",
-                width: "32px",
-                height: "32px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "16px",
-                transition: "background 0.2s",
-              }}
+              style={{ position: "absolute", top: "18px", right: "18px", background: "rgba(255,255,255,0.18)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "8px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", transition: "background 0.2s" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.3)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
             >
@@ -170,36 +196,11 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
             </p>
 
             <div style={{ display: "flex", gap: "8px", marginTop: "14px", flexWrap: "wrap" }}>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  padding: "5px 12px",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  background: "rgba(255,255,255,0.18)",
-                  color: "#fff",
-                }}
-              >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 700, background: "rgba(255,255,255,0.18)", color: "#fff" }}>
                 {appointment.type === "Online" ? <FiGlobe size={11} /> : <FiMapPin size={11} />}
                 {appointment.type === "Online" ? "Online" : "In-Person"}
               </span>
-
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  padding: "5px 12px",
-                  borderRadius: "20px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  background: "rgba(255,255,255,0.18)",
-                  color: "#fff",
-                }}
-              >
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 700, background: "rgba(255,255,255,0.18)", color: "#fff" }}>
                 {appointment.status}
               </span>
             </div>
@@ -207,34 +208,9 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
 
           {/* Body */}
           <div style={{ padding: "24px 28px" }}>
-            {/* Patient */}
             <SectionLabel>Patient</SectionLabel>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "14px",
-                background: "#f8fafc",
-                border: "1px solid #e2e8f0",
-                borderRadius: "12px",
-                padding: "14px 16px",
-              }}
-            >
-              <div
-                style={{
-                  width: "44px",
-                  height: "44px",
-                  background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                  fontWeight: 800,
-                  fontSize: "20px",
-                  flexShrink: 0,
-                }}
-              >
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "14px 16px" }}>
+              <div style={{ width: "44px", height: "44px", background: "linear-gradient(135deg, #2563eb, #7c3aed)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "20px", flexShrink: 0 }}>
                 {(appointment.patientFirstName?.[0] ?? appointment.patient?.[0] ?? "P").toUpperCase()}
               </div>
               <div>
@@ -249,143 +225,66 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
               </div>
             </div>
 
-            {/* Schedule */}
             <SectionLabel>Schedule</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <InfoItem label="Date" value={appointment.date ?? "June 19, 2026"} />
+              <InfoItem label="Day"        value={appointment.date ?? "—"} />
               <InfoItem label="Start Time" value={appointment.time} icon={<FiClock size={13} />} />
-              {appointment.endTime && (
-                <InfoItem label="End Time" value={appointment.endTime} />
-              )}
-              {appointment.duration && (
-                <InfoItem label="Duration" value={`${appointment.duration} min`} />
-              )}
+              {appointment.endTime  && <InfoItem label="End Time" value={appointment.endTime} />}
+              {appointment.duration && <InfoItem label="Duration" value={`${appointment.duration} min`} />}
             </div>
 
-            {/* Consultation */}
             <SectionLabel>Consultation</SectionLabel>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <InfoItem
-                label="Type"
-                value={appointment.type === "Online" ? "🌐 Online" : "📍 In-Person"}
-              />
-              <InfoItem
-                label="Status"
-                value={appointment.status}
-                valueStyle={{ color: statusColor }}
-              />
+              <InfoItem label="Type"   value={appointment.type === "Online" ? "🌐 Online" : "📍 In-Person"} />
+              <InfoItem label="Status" value={appointment.status} valueStyle={{ color: statusColor }} />
               {appointment.meetingUrl && (
-                <div
-                  style={{
-                    gridColumn: "1 / -1",
-                    background: "#f0f9ff",
-                    border: "1px solid #bae6fd",
-                    borderRadius: "10px",
-                    padding: "12px 14px",
-                  }}
-                >
-                  <label
-                    style={{ fontSize: "11px", color: "#0284c7", fontWeight: 700, display: "block", marginBottom: "4px" }}
-                  >
+                <div style={{ gridColumn: "1 / -1", background: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "10px", padding: "12px 14px" }}>
+                  <label style={{ fontSize: "11px", color: "#0284c7", fontWeight: 700, display: "block", marginBottom: "4px" }}>
                     MEETING LINK
                   </label>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      color: "#0369a1",
-                      wordBreak: "break-all",
-                      fontFamily: "monospace",
-                    }}
-                  >
+                  <span style={{ fontSize: "13px", color: "#0369a1", wordBreak: "break-all", fontFamily: "monospace" }}>
                     {appointment.meetingUrl}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Notes */}
             {appointment.notes && (
               <>
                 <SectionLabel>Notes</SectionLabel>
-                <div
-                  style={{
-                    background: "#fffbeb",
-                    border: "1px solid #fde68a",
-                    borderRadius: "10px",
-                    padding: "12px 14px",
-                    fontSize: "14px",
-                    color: "#78350f",
-                    lineHeight: 1.6,
-                  }}
-                >
+                <div style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "10px", padding: "12px 14px", fontSize: "14px", color: "#78350f", lineHeight: 1.6 }}>
                   {appointment.notes}
                 </div>
               </>
             )}
 
-            {/* Join button for online appointments */}
-            {appointment.type === "Online" &&
-              appointment.meetingUrl &&
-              appointment.status !== "Cancelled" && (
-                <button
-                  onClick={handleJoin}
-                  style={{
-                    width: "100%",
-                    marginTop: "20px",
-                    padding: "14px",
-                    background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                    border: "none",
-                    borderRadius: "12px",
-                    color: "#fff",
-                    fontSize: "15px",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    transition: "opacity 0.2s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                >
-                  <FiVideo />
-                  Join Meeting Room
-                </button>
-              )}
+            {appointment.type === "Online" && appointment.meetingUrl && appointment.status !== "Cancelled" && (
+              <button
+                onClick={handleJoin}
+                disabled={!joinable}
+                title={!joinable ? "Available only at appointment time" : "Join meeting"}
+                style={{
+                  width: "100%", marginTop: "20px", padding: "14px",
+                  background: joinable ? "linear-gradient(135deg, #2563eb, #7c3aed)" : "#cbd5e1",
+                  border: "none", borderRadius: "12px", color: "#fff",
+                  fontSize: "15px", fontWeight: 700,
+                  cursor: joinable ? "pointer" : "not-allowed",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                  opacity: joinable ? 1 : 0.6, transition: "opacity 0.2s",
+                }}
+              >
+                <FiVideo />
+                {joinable ? "Join Meeting Room" : "Join (Not yet)"}
+              </button>
+            )}
           </div>
 
           {/* Footer */}
-          <div
-            style={{
-              borderTop: "1px solid #f1f5f9",
-              padding: "16px 28px",
-              display: "flex",
-              gap: "10px",
-            }}
-          >
+          <div style={{ borderTop: "1px solid #f1f5f9", padding: "16px 28px", display: "flex", gap: "10px" }}>
             {canCancel && (
               <button
-                onClick={() => {
-                  onCancel(appointment.id);
-                  onClose();
-                }}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  background: "#fef2f2",
-                  border: "1px solid #fecaca",
-                  borderRadius: "10px",
-                  color: "#dc2626",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontSize: "14px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                  transition: "background 0.2s",
-                }}
+                onClick={() => { onCancel(appointment.id); onClose(); }}
+                style={{ flex: 1, padding: "12px", background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "10px", color: "#dc2626", fontWeight: 700, cursor: "pointer", fontSize: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "background 0.2s" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "#fef2f2")}
               >
@@ -395,18 +294,7 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
             )}
             <button
               onClick={onClose}
-              style={{
-                flex: 1,
-                padding: "12px",
-                background: "#f1f5f9",
-                border: "none",
-                borderRadius: "10px",
-                color: "#475569",
-                fontWeight: 700,
-                cursor: "pointer",
-                fontSize: "14px",
-                transition: "background 0.2s",
-              }}
+              style={{ flex: 1, padding: "12px", background: "#f1f5f9", border: "none", borderRadius: "10px", color: "#475569", fontWeight: 700, cursor: "pointer", fontSize: "14px", transition: "background 0.2s" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "#e2e8f0")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "#f1f5f9")}
             >
@@ -419,63 +307,13 @@ function AppointmentDetailModal({ appointment, onClose, onCancel }) {
   );
 }
 
-function SectionLabel({ children }) {
-  return (
-    <p
-      style={{
-        fontSize: "11px",
-        fontWeight: 700,
-        color: "#94a3b8",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        margin: "20px 0 12px",
-      }}
-    >
-      {children}
-    </p>
-  );
-}
-
-function InfoItem({ label, value, icon, valueStyle = {} }) {
-  return (
-    <div
-      style={{
-        background: "#f8fafc",
-        border: "1px solid #e2e8f0",
-        borderRadius: "10px",
-        padding: "12px 14px",
-      }}
-    >
-      <label
-        style={{
-          fontSize: "11px",
-          color: "#94a3b8",
-          fontWeight: 700,
-          display: "flex",
-          alignItems: "center",
-          gap: "4px",
-          marginBottom: "4px",
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-        }}
-      >
-        {icon}
-        {label}
-      </label>
-      <span style={{ fontSize: "14px", color: "#1e293b", fontWeight: 600, ...valueStyle }}>
-        {value ?? "—"}
-      </span>
-    </div>
-  );
-}
-
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function DoctorAppointmentsPage() {
   const { user } = useContext(AuthContextValue);
 
   const [appointmentsList, setAppointmentsList] = useState([]);
-  const [loadingList, setLoadingList] = useState(true);
+  const [loadingList,      setLoadingList]      = useState(true);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -484,19 +322,13 @@ export default function DoctorAppointmentsPage() {
       .then(async (data) => {
         const basic = Array.isArray(data) ? data : [];
 
-        // Step 1: fetch full reservation details
         const detailedResults = await Promise.allSettled(
-          basic.map((r) =>
-            getReservationById(r.id)
-              .then((full) => full)
-              .catch(() => r)
-          )
+          basic.map((r) => getReservationById(r.id).then((full) => full).catch(() => r))
         );
         const fullReservations = detailedResults
           .filter((r) => r.status === "fulfilled")
           .map((r) => r.value);
 
-        // Step 2: fetch patient name from auth service for each reservation
         const patientResults = await Promise.allSettled(
           fullReservations.map((r) =>
             r.patientId ? getPatientById(r.patientId).catch(() => null) : Promise.resolve(null)
@@ -514,19 +346,49 @@ export default function DoctorAppointmentsPage() {
       .finally(() => setLoadingList(false));
   }, [user?.id]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showDropdown, setShowDropdown] = useState(null);
-
-  // Filter states
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const [filterStatus, setFilterStatus] = useState("All");
-  const [filterType, setFilterType] = useState("All");
-
-  // Pagination
-  const [displayCount, setDisplayCount] = useState(4);
-
-  // Detail modal
+  const [searchTerm,          setSearchTerm]          = useState("");
+  const [showDropdown,        setShowDropdown]        = useState(null);
+  const [showFilterMenu,      setShowFilterMenu]      = useState(false);
+  const [filterStatus,        setFilterStatus]        = useState("All");
+  const [filterType,          setFilterType]          = useState("All");
+  const [displayCount,        setDisplayCount]        = useState(4);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+
+  // Appointments that belong to today only — used for stats + as base for search/filter
+  const todayAppointments = useMemo(() => {
+    const today = getTodayDayOfWeek();
+    return appointmentsList.filter((app) => app.date?.toUpperCase() === today);
+  }, [appointmentsList]);
+
+  // Stats derived from today's appointments only
+  const stats = useMemo(() => {
+    const total     = todayAppointments.length;
+    const confirmed = todayAppointments.filter((a) => a.status === "Confirmed" || a.status === "In Progress").length;
+    const pending   = todayAppointments.filter((a) => a.status === "Pending").length;
+    const cancelled = todayAppointments.filter((a) => a.status === "Cancelled").length;
+    const fmt = (n) => (n < 10 ? `0${n}` : `${n}`);
+    return [
+      { title: "Total Appointments", value: fmt(total),     icon: <FiCalendar />,    color: "blue",   sub: "Today" },
+      { title: "Confirmed",          value: fmt(confirmed), icon: <FiCheckCircle />, color: "green",  sub: "Today" },
+      { title: "Pending",            value: fmt(pending),   icon: <FiClock />,       color: "orange", sub: "Today" },
+      { title: "Cancelled",          value: fmt(cancelled), icon: <FiXCircle />,     color: "red",    sub: "Today" },
+    ];
+  }, [todayAppointments]);
+
+  // Search + filter applied on top of today's appointments
+  const filteredAppointments = useMemo(() => {
+    return todayAppointments.filter((app) => {
+      const matchesSearch = app.patient.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType   = filterType   === "All" || app.type   === filterType;
+      const matchesStatus = filterStatus === "All" || app.status === filterStatus;
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [todayAppointments, searchTerm, filterType, filterStatus]);
+
+  const displayedAppointments = filteredAppointments.slice(0, displayCount);
+  const hasMore = displayCount < filteredAppointments.length;
+
+  const todayLabel = getTodayLabel();
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -538,14 +400,13 @@ export default function DoctorAppointmentsPage() {
       const app = appointmentsList.find((a) => a.id === id);
       if (!app) return;
 
-      // View → open the detail modal
       if (app.action === "View") {
         setSelectedAppointment(app);
         return;
       }
 
-      // Join / Start → open meeting room
       if ((app.action === "Join" || app.action === "Start") && app.meetingUrl) {
+        if (!canJoinAppointment(app.date, app.time)) return;
         window.open(app.meetingUrl, "_blank", "noopener,noreferrer");
       }
 
@@ -572,7 +433,6 @@ export default function DoctorAppointmentsPage() {
           app.id === id ? { ...app, status: "Cancelled", action: "View" } : app
         )
       );
-      // Refresh modal if it's showing the same appointment
       setSelectedAppointment((prev) =>
         prev?.id === id ? { ...prev, status: "Cancelled", action: "View" } : prev
       );
@@ -581,41 +441,11 @@ export default function DoctorAppointmentsPage() {
     }
   }, []);
 
-  const filteredAppointments = useMemo(() => {
-    return appointmentsList.filter((app) => {
-      const matchesSearch = app.patient
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesType = filterType === "All" || app.type === filterType;
-      const matchesStatus =
-        filterStatus === "All" || app.status === filterStatus;
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [appointmentsList, searchTerm, filterType, filterStatus]);
-
-  const displayedAppointments = filteredAppointments.slice(0, displayCount);
-  const hasMore = displayCount < filteredAppointments.length;
-
-  const stats = useMemo(() => {
-    const total = appointmentsList.length;
-    const confirmed = appointmentsList.filter(
-      (a) => a.status === "Confirmed" || a.status === "In Progress"
-    ).length;
-    const pending = appointmentsList.filter((a) => a.status === "Pending").length;
-    const cancelled = appointmentsList.filter((a) => a.status === "Cancelled").length;
-
-    const fmt = (n) => (n < 10 ? `0${n}` : n);
-    return [
-      { title: "Total Appointments", value: fmt(total), icon: <FiCalendar />, color: "blue", sub: "Today" },
-      { title: "Confirmed", value: fmt(confirmed), icon: <FiCheckCircle />, color: "green", sub: "Today" },
-      { title: "Pending", value: fmt(pending), icon: <FiClock />, color: "orange", sub: "Today" },
-      { title: "Cancelled", value: fmt(cancelled), icon: <FiXCircle />, color: "red", sub: "Today" },
-    ];
-  }, [appointmentsList]);
-
   return (
     <DashboardShell title="Dashboard" description="Appointments">
       <div className="doctor-appointments-page">
+
+        {/* ── Header ── */}
         <motion.div
           className="doctor-appointments-header"
           initial={{ opacity: 0, y: 18 }}
@@ -628,17 +458,18 @@ export default function DoctorAppointmentsPage() {
               <span>Today's Statistics</span>
               <div className="doctor-date-small">
                 <FiCalendar />
-                June 19, 2026
+                {todayLabel}
               </div>
             </div>
           </div>
           <button className="doctor-date-btn">
             <FiCalendar />
-            June 19, 2026
+            {todayLabel}
             <FiChevronDown />
           </button>
         </motion.div>
 
+        {/* ── Stats ── */}
         <section className="doctor-stats-grid">
           {stats.map((item, index) => (
             <motion.div
@@ -659,6 +490,7 @@ export default function DoctorAppointmentsPage() {
           ))}
         </section>
 
+        {/* ── Appointments Table ── */}
         <motion.section
           className="doctor-appointments-card"
           initial={{ opacity: 0, y: 24 }}
@@ -668,7 +500,7 @@ export default function DoctorAppointmentsPage() {
           <div className="appointments-card-top">
             <div>
               <h3>Today's Appointments</h3>
-              <p>Monday, June 19, 2026</p>
+              <p>{todayLabel}</p>
             </div>
 
             <div className="appointments-card-actions" style={{ position: "relative" }}>
@@ -688,15 +520,7 @@ export default function DoctorAppointmentsPage() {
                 <FiSliders />
                 Filter
                 {(filterType !== "All" || filterStatus !== "All") && (
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      background: "#2388ff",
-                      borderRadius: "50%",
-                      marginLeft: 4,
-                    }}
-                  />
+                  <span style={{ width: 8, height: 8, background: "#2388ff", borderRadius: "50%", marginLeft: 4 }} />
                 )}
               </button>
 
@@ -707,22 +531,9 @@ export default function DoctorAppointmentsPage() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    style={{
-                      position: "absolute",
-                      top: "54px",
-                      right: 0,
-                      background: "#fff",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: "10px",
-                      padding: "20px",
-                      width: "260px",
-                      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                      zIndex: 20,
-                    }}
+                    style={{ position: "absolute", top: "54px", right: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "20px", width: "260px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", zIndex: 20 }}
                   >
-                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>
-                      Status
-                    </h4>
+                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>Status</h4>
                     <select
                       value={filterStatus}
                       onChange={(e) => { setFilterStatus(e.target.value); setDisplayCount(4); }}
@@ -736,9 +547,7 @@ export default function DoctorAppointmentsPage() {
                       <option value="Cancelled">Cancelled</option>
                     </select>
 
-                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>
-                      Consultation Type
-                    </h4>
+                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>Consultation Type</h4>
                     <select
                       value={filterType}
                       onChange={(e) => { setFilterType(e.target.value); setDisplayCount(4); }}
@@ -763,6 +572,7 @@ export default function DoctorAppointmentsPage() {
             </div>
           </div>
 
+          {/* Table */}
           <div className="appointments-table">
             <div className="appointments-table-head">
               <span>Time ↕</span>
@@ -773,104 +583,106 @@ export default function DoctorAppointmentsPage() {
             </div>
 
             <div className="appointments-table-body">
-              <AnimatePresence mode="popLayout">
-                {displayedAppointments.length > 0 ? (
-                  displayedAppointments.map((item) => (
-                    <motion.div
-                      layout
-                      className="appointment-row"
-                      key={item.id}
-                      initial={{ opacity: 0, scale: 0.98 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.25 }}
-                      whileHover={{ scale: 1.01 }}
-                    >
-                      <div className="appointment-time">
-                        <span className="row-icon"><FiClock /></span>
-                        <strong>{item.time}</strong>
-                      </div>
+              {loadingList ? (
+                <div style={{ padding: "40px", textAlign: "center", color: "#8c8c8c", fontSize: "15px" }}>
+                  Loading appointments…
+                </div>
+              ) : (
+                <AnimatePresence mode="popLayout">
+                  {displayedAppointments.length > 0 ? (
+                    displayedAppointments.map((item) => {
+                      const isJoinOrStart = item.action === "Join" || item.action === "Start";
+                      const joinable = isJoinOrStart && canJoinAppointment(item.date, item.time);
 
-                      <div className="appointment-patient">
-                        <span className="row-icon"><FiUser /></span>
-                        <strong>{item.patient}</strong>
-                      </div>
-
-                      <div className="appointment-type">
-                        {item.type === "Online" ? <FiGlobe /> : <FiMapPin />}
-                        <span style={{ marginLeft: "8px" }}>{item.type}</span>
-                      </div>
-
-                      <div>
-                        <span className={`appointment-status ${item.status.toLowerCase().replace(" ", "-")}`}>
-                          {item.status}
-                        </span>
-                      </div>
-
-                      <div className="appointment-action" style={{ position: "relative" }}>
-                        <button
-                          className={`action-btn ${item.action.toLowerCase()}`}
-                          onClick={() => handleActionClick(item.id)}
+                      return (
+                        <motion.div
+                          layout
+                          className="appointment-row"
+                          key={item.id}
+                          initial={{ opacity: 0, scale: 0.98 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.25 }}
+                          whileHover={{ scale: 1.01 }}
                         >
-                          {item.action === "Join" && <FiVideo />}
-                          {item.action === "Start" && <FiPlay />}
-                          {item.action === "View" && <FiEye />}
-                          {item.action === "Finish" && <FiCheckCircle />}
-                          {item.action}
-                        </button>
+                          <div className="appointment-time">
+                            <span className="row-icon"><FiClock /></span>
+                            <strong>{item.time}</strong>
+                          </div>
 
-                        <button
-                          className="more-btn"
-                          onClick={() =>
-                            setShowDropdown(showDropdown === item.id ? null : item.id)
-                          }
-                        >
-                          <FiMoreVertical />
-                        </button>
+                          <div className="appointment-patient">
+                            <span className="row-icon"><FiUser /></span>
+                            <strong>{item.patient}</strong>
+                          </div>
 
-                        <AnimatePresence>
-                          {showDropdown === item.id && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -5 }}
-                              style={{
-                                position: "absolute",
-                                top: "45px",
-                                right: "0",
-                                background: "#fff",
-                                border: "1px solid #e2e8f0",
-                                borderRadius: "8px",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                zIndex: 10,
-                                minWidth: "160px",
-                              }}
+                          <div className="appointment-type">
+                            {item.type === "Online" ? <FiGlobe /> : <FiMapPin />}
+                            <span style={{ marginLeft: "8px" }}>{item.type}</span>
+                          </div>
+
+                          <div>
+                            <span className={`appointment-status ${item.status.toLowerCase().replace(" ", "-")}`}>
+                              {item.status}
+                            </span>
+                          </div>
+
+                          <div className="appointment-action" style={{ position: "relative" }}>
+                            <button
+                              className={`action-btn ${item.action.toLowerCase()}`}
+                              onClick={() => handleActionClick(item.id)}
+                              disabled={isJoinOrStart && !joinable}
+                              title={isJoinOrStart && !joinable ? "Available only at appointment time" : undefined}
+                              style={isJoinOrStart && !joinable ? { opacity: 0.45, cursor: "not-allowed" } : {}}
                             >
-                              <button
-                                onClick={() => { setSelectedAppointment(item); setShowDropdown(null); }}
-                                style={{ display: "block", width: "100%", padding: "12px 16px", background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontWeight: 600, textAlign: "left" }}
-                              >
-                                View Details
-                              </button>
-                              <button
-                                onClick={() => handleCancel(item.id)}
-                                disabled={item.status === "Cancelled" || item.status === "Completed"}
-                                style={{ display: "block", width: "100%", padding: "12px 16px", background: "transparent", border: "none", color: item.status === "Cancelled" || item.status === "Completed" ? "#cbd5e1" : "#e92735", cursor: item.status === "Cancelled" || item.status === "Completed" ? "not-allowed" : "pointer", fontWeight: 600, textAlign: "left" }}
-                              >
-                                Cancel Appointment
-                              </button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div style={{ padding: "40px", textAlign: "center", color: "#8c8c8c", fontSize: "15px" }}>
-                    No appointments match your filters.
-                  </div>
-                )}
-              </AnimatePresence>
+                              {item.action === "Join"   && <FiVideo />}
+                              {item.action === "Start"  && <FiPlay />}
+                              {item.action === "View"   && <FiEye />}
+                              {item.action === "Finish" && <FiCheckCircle />}
+                              {item.action}
+                            </button>
+
+                            <button
+                              className="more-btn"
+                              onClick={() => setShowDropdown(showDropdown === item.id ? null : item.id)}
+                            >
+                              <FiMoreVertical />
+                            </button>
+
+                            <AnimatePresence>
+                              {showDropdown === item.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -5 }}
+                                  style={{ position: "absolute", top: "45px", right: "0", background: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 10, minWidth: "160px" }}
+                                >
+                                  <button
+                                    onClick={() => { setSelectedAppointment(item); setShowDropdown(null); }}
+                                    style={{ display: "block", width: "100%", padding: "12px 16px", background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontWeight: 600, textAlign: "left" }}
+                                  >
+                                    View Details
+                                  </button>
+                                  <button
+                                    onClick={() => handleCancel(item.id)}
+                                    disabled={item.status === "Cancelled" || item.status === "Completed"}
+                                    style={{ display: "block", width: "100%", padding: "12px 16px", background: "transparent", border: "none", color: item.status === "Cancelled" || item.status === "Completed" ? "#cbd5e1" : "#e92735", cursor: item.status === "Cancelled" || item.status === "Completed" ? "not-allowed" : "pointer", fontWeight: 600, textAlign: "left" }}
+                                  >
+                                    Cancel Appointment
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ padding: "40px", textAlign: "center", color: "#8c8c8c", fontSize: "15px" }}>
+                      No appointments for today.
+                    </div>
+                  )}
+                </AnimatePresence>
+              )}
             </div>
           </div>
 
@@ -891,7 +703,6 @@ export default function DoctorAppointmentsPage() {
         </motion.section>
       </div>
 
-      {/* Appointment Detail Modal */}
       {selectedAppointment && (
         <AppointmentDetailModal
           appointment={selectedAppointment}

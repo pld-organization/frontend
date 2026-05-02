@@ -17,10 +17,6 @@ import AuthContextValue from "../../context/AuthContextValue";
 import { FiCalendar } from "react-icons/fi";
 import "../../styles/patient-schedule.css";
 
-/**
- * Fetch doctor profile from the auth service.
- * Returns null silently on failure.
- */
 async function fetchDoctorProfile(doctorId) {
   try {
     const { data } = await apiClient.get(API_ENDPOINTS.DOCTORS.BY_ID(doctorId));
@@ -30,37 +26,35 @@ async function fetchDoctorProfile(doctorId) {
   }
 }
 
-/**
- * Maps a fully-loaded Reservation (with schedule joined) + doctor profile
- * into the shape AppointmentCard expects.
- */
 function mapReservation(r, doctorProfile) {
   return {
-    id:     r.id,
+    id:         r.id,
     doctor: {
       firstName:  doctorProfile?.firstName  ?? "Unknown",
       lastName:   doctorProfile?.lastName   ?? "",
       speciality: doctorProfile?.speciality ?? "",
     },
-    date:   r.schedule?.dayOfWeek  ?? "—",
-    time:   r.schedule?.startTime  ?? "—",
-    type:   r.schedule?.appointmenttype === "ONLINE" ? "online" : "in-person",
-    status: r.reservationStatus ? "confirmed" : "cancelled",
-    reason: r.reason ?? "",
+    date:       r.schedule?.dayOfWeek    ?? "—",
+    time:       r.schedule?.startTime    ?? "—",
+    endTime:    r.schedule?.endTime      ?? null,
+    type:       r.schedule?.appointmenttype === "ONLINE" ? "online" : "in-person",
+    status:     r.reservationStatus ? "confirmed" : "cancelled",
+    reason:     r.reason                 ?? "",
+    meetingUrl: r.meetingUrl             ?? null,
   };
 }
 
 export default function PatientSchedulePage() {
-  const { user } = useContext(AuthContextValue);
-  const navigate = useNavigate();
+  const { user }   = useContext(AuthContextValue);
+  const navigate   = useNavigate();
 
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modalOpen,             setModalOpen]             = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelLoading,         setCancelLoading]         = useState(false);
 
   useEffect(() => {
     if (user?.id) fetchAppointments();
@@ -71,22 +65,18 @@ export default function PatientSchedulePage() {
       setLoading(true);
       setError(null);
 
-      // 1 — get reservation list (schedule is null here — backend doesn't join it)
       const list = await getPatientAppointments(user.id);
       if (!Array.isArray(list) || list.length === 0) {
         setAppointments([]);
         return;
       }
 
-      // 2 — re-fetch each reservation by ID in parallel (this endpoint DOES join schedule)
       const fullReservations = await Promise.all(list.map((r) => getReservationById(r.id)));
 
-      // 3 — fetch unique doctor profiles in parallel
       const uniqueDoctorIds = [...new Set(fullReservations.map((r) => r.doctorId).filter(Boolean))];
       const doctorProfiles  = await Promise.all(uniqueDoctorIds.map(fetchDoctorProfile));
       const doctorMap       = Object.fromEntries(uniqueDoctorIds.map((id, i) => [id, doctorProfiles[i]]));
 
-      // 4 — map to AppointmentCard shape
       const mapped = fullReservations.map((r) => mapReservation(r, doctorMap[r.doctorId]));
       setAppointments(mapped);
 
@@ -94,6 +84,12 @@ export default function PatientSchedulePage() {
       setError("Failed to load appointments. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleJoinClick(meetingUrl) {
+    if (meetingUrl) {
+      window.open(meetingUrl, "_blank", "noopener,noreferrer");
     }
   }
 
@@ -107,9 +103,7 @@ export default function PatientSchedulePage() {
     try {
       setCancelLoading(true);
       await cancelAppointment(selectedAppointmentId);
-      setAppointments((prev) =>
-        prev.filter((app) => app.id !== selectedAppointmentId)
-      );
+      setAppointments((prev) => prev.filter((app) => app.id !== selectedAppointmentId));
       setModalOpen(false);
     } catch {
       alert("Failed to cancel appointment.");
@@ -152,6 +146,7 @@ export default function PatientSchedulePage() {
                 key={app.id}
                 appointment={app}
                 onCancel={handleCancelClick}
+                onJoin={handleJoinClick}
               />
             ))}
           </div>
