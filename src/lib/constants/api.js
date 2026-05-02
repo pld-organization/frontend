@@ -1,4 +1,7 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "https://authservice-version-90.onrender.com";
+// src/lib/constants/api.js
+
+export const API_BASE_URL =
+  import.meta.env.VITE_AUTH_API_URL || "https://authservice-version-90.onrender.com";
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -7,6 +10,9 @@ export const API_ENDPOINTS = {
     LOGOUT: "/auth/logout",
     PROFILE: "/auth/profile",
     REFRESH: "/auth/refresh",
+    COMPLETE_PROFILE: "/auth/complete-profile",
+    GOOGLE: "/auth/google",
+    GOOGLE_MOBILE: "/auth/google/mobile",
   },
 
   PATIENTS: {

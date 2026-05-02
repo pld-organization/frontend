@@ -4,23 +4,18 @@ import {
   getStoredAuthSession,
   saveAuthSession,
 } from "./authStorage";
+import { API_BASE_URL, API_ENDPOINTS } from "../lib/constants/api";
 import { isTokenExpired } from "../utils/jwt";
 
-const API_BASE_URL =
-  import.meta.env.DEV
-    ? ""
-    : import.meta.env.VITE_AUTH_API_URL ??
-      "https://authservice-version-90.onrender.com";
-
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: import.meta.env.DEV ? "" : API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 const refreshClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: import.meta.env.DEV ? "" : API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -38,7 +33,7 @@ async function refreshStoredSession() {
 
   if (!refreshPromise) {
     refreshPromise = refreshClient
-      .post("/auth/refresh", {
+      .post(API_ENDPOINTS.AUTH.REFRESH, {
         refreshToken: currentSession.refreshToken,
       })
       .then(({ data }) => saveAuthSession(data, currentSession.user))
@@ -122,7 +117,7 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       return Promise.reject(refreshError);
     }
-  },
+  }
 );
 
 export default apiClient;
