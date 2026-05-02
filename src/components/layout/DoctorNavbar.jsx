@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom";
 import { FiGrid, FiCalendar, FiUsers, FiClock, FiMessageCircle } from "react-icons/fi";
 
 const doctorMenu = [
-  { label: "Overview", to: "/doctor/dashboard", icon: <FiGrid /> },
+  { label: "Overview", to: "/doctor/overview", icon: <FiGrid /> },
   { label: "Appointments", to: "/doctor/appointments", icon: <FiCalendar /> },
   { label: "Patients", to: "/patients", icon: <FiUsers /> },
   { label: "Schedule", to: "/availability", icon: <FiClock /> },

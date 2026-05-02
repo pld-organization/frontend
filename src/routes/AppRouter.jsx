@@ -74,6 +74,14 @@ function AppRouter() {
         }
       />
       <Route
+        path="/doctor/overview"
+        element={
+          <PrivateRoute allowedRoles={["DOCTOR"]}>
+            <DoctorOverviewPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
         path="/patient/dashboard"
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>

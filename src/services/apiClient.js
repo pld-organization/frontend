@@ -6,11 +6,7 @@ import {
 } from "./authStorage";
 import { isTokenExpired } from "../utils/jwt";
 
-const API_BASE_URL =
-  import.meta.env.DEV
-    ? ""
-    : import.meta.env.VITE_AUTH_API_URL ??
-      "https://authservice-version-90.onrender.com";
+const API_BASE_URL = "https://authservice-version-90.onrender.com";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

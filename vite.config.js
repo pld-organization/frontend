@@ -10,6 +10,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      "/consultations": {
+        target: "https://authservice-version-90.onrender.com",
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
 });

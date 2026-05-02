@@ -84,6 +84,25 @@ export async function getAvailableDoctors() {
   }
 }
 
+export async function getDoctorAppointments() {
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.APPOINTMENTS.LIST);
+    return data;
+  } catch (error) {
+    console.warn("Doctor Appointments API failed, using fallback", error);
+    return [
+      { id: 1, time: "08:00", patient: "Salmi Ahmed", type: "IRL", status: "Completed", action: "View" },
+      { id: 2, time: "08:30", patient: "Amina Boudjemaa", type: "IRL", status: "Cancelled", action: "View" },
+      { id: 3, time: "09:00", patient: "Nabil Haddad", type: "Online", status: "Confirmed", action: "Join" },
+      { id: 4, time: "09:30", patient: "Walid Benkhaled", type: "IRL", status: "Pending", action: "Start" },
+      { id: 5, time: "10:00", patient: "Yousra Amrani", type: "Online", status: "Confirmed", action: "Join" },
+      { id: 6, time: "10:30", patient: "Karim Ziani", type: "IRL", status: "Pending", action: "Start" },
+      { id: 7, time: "11:00", patient: "Lydia Mansouri", type: "Online", status: "Pending", action: "Start" },
+      { id: 8, time: "11:30", patient: "Fouad Belaid", type: "IRL", status: "Pending", action: "Start" },
+    ];
+  }
+}
+
 export async function createAppointment(appointmentData) {
   try {
     const { data } = await apiClient.post(API_ENDPOINTS.APPOINTMENTS.CREATE, appointmentData);

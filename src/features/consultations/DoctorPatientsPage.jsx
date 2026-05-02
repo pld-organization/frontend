@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import DashboardShell from "../../components/layout/DashboardShell";
 import {
   FiSearch,
@@ -11,138 +12,94 @@ import {
   FiArrowLeft,
   FiArrowRight,
 } from "react-icons/fi";
+import { useAuth } from "../../hooks/useAuth";
+import userApi from "./data/userApi";
 import "../../styles/doctor-patients.css";
 
-void motion;
-
-const initialPatients = [
-  {
-    id: 1,
-    date: "27 Dec, 2025",
-    name: "Ahmed Benali",
-    type: "Online",
-    ai: "No risk detected",
-    meeting: "—",
-    status: "Pending",
-    avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 2,
-    date: "03 Feb, 2026",
-    name: "Yasmine Bensalem",
-    type: "IRL",
-    ai: "Normal result",
-    meeting: "—",
-    status: "Pending",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 3,
-    date: "02 Mar, 2026",
-    name: "Mohamed Khelifi",
-    type: "Online",
-    ai: "Moderate risk detected",
-    meeting: "Diagnosis confirmed",
-    status: "Completed",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 4,
-    date: "02 Mar, 2026",
-    name: "Lina Haddad",
-    type: "IRL",
-    ai: "Normal result",
-    meeting: "Additional tests",
-    status: "Completed",
-    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 5,
-    date: "02 Mar, 2026",
-    name: "Samir Meziane",
-    type: "IRL",
-    ai: "Moderate risk detected",
-    meeting: "—",
-    status: "Pending",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 6,
-    date: "02 Mar, 2026",
-    name: "Nadia Boudiaf",
-    type: "Online",
-    ai: "Moderate risk detected",
-    meeting: "Diagnosis confirmed",
-    status: "Completed",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 7,
-    date: "02 Mar, 2026",
-    name: "Karim Mansouri",
-    type: "IRL",
-    ai: "Normal result",
-    meeting: "Treatment recommended",
-    status: "Completed",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 8,
-    date: "02 Mar, 2026",
-    name: "Dania Bouroubi",
-    type: "Online",
-    ai: "No risk detected",
-    meeting: "—",
-    status: "Pending",
-    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 9,
-    date: "05 Mar, 2026",
-    name: "Walid Ziani",
-    type: "IRL",
-    ai: "Moderate risk detected",
-    meeting: "—",
-    status: "Pending",
-    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 10,
-    date: "06 Mar, 2026",
-    name: "Amira Tahar",
-    type: "Online",
-    ai: "Normal result",
-    meeting: "Follow up",
-    status: "Completed",
-    avatar: "https://images.unsplash.com/photo-1531123897727-8f129e1b4492?auto=format&fit=crop&w=100&q=80",
-  },
-  {
-    id: 11,
-    date: "07 Mar, 2026",
-    name: "Sofiane Brahimi",
-    type: "IRL",
-    ai: "No risk detected",
-    meeting: "—",
-    status: "Pending",
-    avatar: "https://images.unsplash.com/photo-1504257432389-52343af06ae3?auto=format&fit=crop&w=100&q=80",
-  }
-];
-
-function aiClass(value) {
+function aiClass(value = "") {
   if (value.includes("Moderate")) return "risk";
   if (value.includes("Normal")) return "normal";
   return "safe";
 }
 
 export default function DoctorPatientsPage() {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [doctorName, setDoctorName] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterAi, setFilterAi] = useState("All");
   const [filterType, setFilterType] = useState("All");
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        // Step 1: Récupérer les IDs des patients comme demandé par le leader
+        const idsResponse = await userApi.getPatientIds();
+        const ids = Array.isArray(idsResponse) ? idsResponse : (idsResponse?.ids || []);
+
+        // Step 2: Récupérer les détails pour chaque patient
+        const patientDetails = await Promise.all(
+          (ids || []).map(id => userApi.getPatientById(id).catch(err => {
+            console.error(`Failed to fetch patient ${id}`, err);
+            return null;
+          }))
+        );
+
+        // Step 3: Formater les données pour le tableau
+        const formattedPatients = patientDetails
+          .filter(p => p !== null)
+          .map(p => ({
+            id: p.id || p.userId || p._id,
+            name: `${p.firstName || ""} ${p.lastName || ""}`.trim() || "Unknown",
+            date: p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "N/A",
+            type: p.consultationType || "Online",
+            ai: p.aiResult || "No risk detected",
+            meeting: p.meetingResult || "—",
+            status: p.status || "Pending",
+            avatar: p.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.id || p.firstName}`,
+          }));
+
+        setPatients(formattedPatients);
+
+        // Fetch doctor name if missing or as verification
+        try {
+          const dData = await userApi.getDoctorById(user.id);
+          if (dData) {
+            const fullName = dData.name || dData.fullName || 
+                            (`${dData.firstName || ""} ${dData.lastName || ""}`.trim());
+            if (fullName) {
+              setDoctorName(fullName.startsWith("Dr.") ? fullName : `Dr. ${fullName}`);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch doctor name", err);
+        }
+      } catch (err) {
+        console.error("Failed to fetch patients", err);
+        setError("Erreur lors du chargement des patients.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchPatients();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -150,15 +107,15 @@ export default function DoctorPatientsPage() {
   };
 
   const filteredPatients = useMemo(() => {
-    return initialPatients.filter((p) => {
+    return patients.filter((p) => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = filterStatus === "All" || p.status === filterStatus;
       const matchesAi = filterAi === "All" || p.ai === filterAi;
       const matchesType = filterType === "All" || p.type === filterType;
-      
+
       return matchesSearch && matchesStatus && matchesAi && matchesType;
     });
-  }, [searchTerm, filterStatus, filterAi, filterType]);
+  }, [patients, searchTerm, filterStatus, filterAi, filterType]);
 
   const totalPages = Math.max(1, Math.ceil(filteredPatients.length / rowsPerPage));
   const currentItems = filteredPatients.slice(
@@ -180,8 +137,7 @@ export default function DoctorPatientsPage() {
           <div className="patients-card-header">
             <div>
               <div className="patients-title-row">
-                <h2>Patients List</h2>
-                <FiFilter className="title-filter-icon" />
+                <h2>{doctorName ? `${doctorName}'s Patients` : "Patients List"}</h2>
               </div>
               <p>Manage and track all your patients</p>
             </div>
@@ -189,15 +145,15 @@ export default function DoctorPatientsPage() {
             <div className="patients-tools">
               <div className="patients-search">
                 <FiSearch />
-                <input 
-                  placeholder="Search patient by name..." 
+                <input
+                  placeholder="Search patient by name..."
                   value={searchTerm}
                   onChange={handleSearch}
                 />
               </div>
 
               <div style={{ position: "relative" }}>
-                <button 
+                <button
                   className="patients-filter-btn"
                   onClick={() => setShowFilterMenu(!showFilterMenu)}
                 >
@@ -210,29 +166,29 @@ export default function DoctorPatientsPage() {
 
                 <AnimatePresence>
                   {showFilterMenu && (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      style={{ position: "absolute", top: "54px", right: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: "12px", padding: "20px", width: "260px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", zIndex: 20 }}
+                      style={{ position: "absolute", top: "54px", right: 0, background: "#fff", border: "1px solid #bcdcff", borderRadius: "16px", padding: "24px", width: "280px", boxShadow: "0 10px 30px rgba(36, 144, 234, 0.12)", zIndex: 20 }}
                     >
-                      <h4 style={{ margin: "0 0 10px", fontSize: "14px", color: "#0f172a", fontWeight: "600" }}>Status</h4>
-                      <select 
-                        value={filterStatus} 
+                      <h4 style={{ margin: "0 0 12px", fontSize: "13px", color: "#64748b", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</h4>
+                      <select
+                        value={filterStatus}
                         onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                        style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginBottom: "16px", fontSize: "14px", outline: "none", background: "#f8fafc" }}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: "10px", border: "1px solid #bcdcff", marginBottom: "20px", fontSize: "14px", outline: "none", background: "#f7fbff", color: "#1e2738", fontWeight: "500" }}
                       >
                         <option value="All">All Statuses</option>
                         <option value="Pending">Pending</option>
                         <option value="Completed">Completed</option>
                       </select>
 
-                      <h4 style={{ margin: "0 0 10px", fontSize: "14px", color: "#0f172a", fontWeight: "600" }}>AI Result</h4>
-                      <select 
-                        value={filterAi} 
+                      <h4 style={{ margin: "0 0 12px", fontSize: "13px", color: "#64748b", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>AI Result</h4>
+                      <select
+                        value={filterAi}
                         onChange={(e) => { setFilterAi(e.target.value); setCurrentPage(1); }}
-                        style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginBottom: "16px", fontSize: "14px", outline: "none", background: "#f8fafc" }}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: "10px", border: "1px solid #bcdcff", marginBottom: "20px", fontSize: "14px", outline: "none", background: "#f7fbff", color: "#1e2738", fontWeight: "500" }}
                       >
                         <option value="All">All Results</option>
                         <option value="No risk detected">No risk detected</option>
@@ -240,22 +196,22 @@ export default function DoctorPatientsPage() {
                         <option value="Moderate risk detected">Moderate risk detected</option>
                       </select>
 
-                      <h4 style={{ margin: "0 0 10px", fontSize: "14px", color: "#0f172a", fontWeight: "600" }}>Consultation Type</h4>
-                      <select 
-                        value={filterType} 
+                      <h4 style={{ margin: "0 0 12px", fontSize: "13px", color: "#64748b", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.05em" }}>Consultation Type</h4>
+                      <select
+                        value={filterType}
                         onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}
-                        style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "14px", outline: "none", background: "#f8fafc" }}
+                        style={{ width: "100%", padding: "10px 14px", borderRadius: "10px", border: "1px solid #bcdcff", fontSize: "14px", outline: "none", background: "#f7fbff", color: "#1e2738", fontWeight: "500" }}
                       >
                         <option value="All">All Types</option>
                         <option value="IRL">IRL</option>
                         <option value="Online">Online</option>
                       </select>
 
-                      <button 
+                      <button
                         onClick={() => { setFilterStatus("All"); setFilterAi("All"); setFilterType("All"); setCurrentPage(1); setShowFilterMenu(false); }}
-                        style={{ marginTop: "20px", width: "100%", padding: "10px", background: "#f1f5f9", border: "none", borderRadius: "8px", color: "#475569", cursor: "pointer", fontWeight: "600", transition: "all 0.2s" }}
-                        onMouseEnter={(e) => e.target.style.background = "#e2e8f0"}
-                        onMouseLeave={(e) => e.target.style.background = "#f1f5f9"}
+                        style={{ marginTop: "24px", width: "100%", padding: "12px", background: "#eff6ff", border: "1px solid #bcdcff", borderRadius: "12px", color: "#2490ea", cursor: "pointer", fontWeight: "700", transition: "all 0.2s" }}
+                        onMouseEnter={(e) => { e.target.style.background = "#2490ea"; e.target.style.color = "#fff"; }}
+                        onMouseLeave={(e) => { e.target.style.background = "#eff6ff"; e.target.style.color = "#2490ea"; }}
                       >
                         Reset Filters
                       </button>
@@ -276,19 +232,13 @@ export default function DoctorPatientsPage() {
           </div>
 
           <div className="patients-table">
-            <div className="patients-table-head">
-              <span>DATE ↑</span>
-              <span>PATIENT</span>
-              <span>TYPE</span>
-              <span>AI ANALYSIS RESULT</span>
-              <span>MEETING RESULT</span>
-              <span>STATUS</span>
-              <span>ACTION</span>
-            </div>
-
             <div className="patients-table-body">
               <AnimatePresence mode="popLayout">
-                {currentItems.length > 0 ? (
+                {loading ? (
+                  <div style={{ padding: "40px", textAlign: "center" }}>Chargement des patients...</div>
+                ) : error ? (
+                  <div style={{ padding: "40px", textAlign: "center", color: "#ef4444" }}>{error}</div>
+                ) : currentItems.length > 0 ? (
                   currentItems.map((item) => (
                     <motion.div
                       layout
@@ -298,40 +248,60 @@ export default function DoctorPatientsPage() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.25 }}
-                      whileHover={{ backgroundColor: "#f8fafc" }}
                     >
-                      <div className="patient-date">{item.date}</div>
-
-                      <div className="patient-name-cell">
-                        <img src={item.avatar} alt={item.name} className="patient-avatar-img" />
-                        <strong>{item.name}</strong>
+                      <div className="data-block">
+                        <span className="data-label">Date</span>
+                        <div className="patient-date">{item.date}</div>
                       </div>
 
-                      <div className="patient-type">
-                        {item.type === "Online" ? <FiGlobe /> : <FiMapPin />}
-                        <span>{item.type}</span>
+                      <div className="data-block">
+                        <span className="data-label">Patient</span>
+                        <div className="patient-name-cell">
+                          <img src={item.avatar} alt={item.name} className="patient-avatar-img" />
+                          <strong>{item.name}</strong>
+                        </div>
                       </div>
 
-                      <div>
-                        <span className={`ai-pill ${aiClass(item.ai)}`}>
-                          {item.ai}
-                        </span>
+                      <div className="data-block">
+                        <span className="data-label">Type</span>
+                        <div className="patient-type">
+                          {item.type === "Online" ? <FiGlobe /> : <FiMapPin />}
+                          <span>{item.type}</span>
+                        </div>
                       </div>
 
-                      <div className="meeting-result">{item.meeting}</div>
+                      <div className="data-block">
+                        <span className="data-label">AI Analysis Result</span>
+                        <div>
+                          <span className={`ai-pill ${aiClass(item.ai)}`}>
+                            {item.ai}
+                          </span>
+                        </div>
+                      </div>
 
-                      <div>
-                        <span
-                          className={`patient-status ${item.status.toLowerCase()}`}
-                        >
-                          <i />
-                          {item.status}
-                        </span>
+                      <div className="data-block">
+                        <span className="data-label">Meeting Result</span>
+                        <div className="meeting-result">{item.meeting}</div>
+                      </div>
+
+                      <div className="data-block">
+                        <span className="data-label">Status</span>
+                        <div>
+                          <span
+                            className={`patient-status ${item.status.toLowerCase()}`}
+                          >
+                            <i />
+                            {item.status}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="patient-action">
-                        <button className="patient-view-btn">
-                          View Profile
+                        <button
+                          className="patient-view-btn"
+                          onClick={() => navigate(`/doctor/consultation?patientId=${item.id}`)}
+                        >
+                          Start Consultation
                         </button>
                       </div>
                     </motion.div>
@@ -347,7 +317,7 @@ export default function DoctorPatientsPage() {
 
           <div className="patients-footer">
             <div className="patients-pagination">
-              <button 
+              <button
                 className="text-btn"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
@@ -357,8 +327,8 @@ export default function DoctorPatientsPage() {
               </button>
 
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button 
-                  key={page} 
+                <button
+                  key={page}
                   className={`page-num ${currentPage === page ? "active" : ""}`}
                   onClick={() => setCurrentPage(page)}
                 >
@@ -366,7 +336,7 @@ export default function DoctorPatientsPage() {
                 </button>
               ))}
 
-              <button 
+              <button
                 className="text-btn"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages || totalPages === 0}
