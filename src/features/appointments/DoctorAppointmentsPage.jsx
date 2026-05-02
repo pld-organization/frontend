@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useContext } from "react";
+import { useState, useMemo, useEffect, useContext, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardShell from "../../components/layout/DashboardShell";
 import {
@@ -16,33 +16,460 @@ import {
   FiPlay,
   FiMoreVertical,
   FiChevronDown,
+  FiX,
+  FiHash,
+  FiAlertCircle,
 } from "react-icons/fi";
 import AuthContextValue from "../../context/AuthContextValue";
 import {
   getDoctorAppointments,
   cancelAppointment,
   getReservationById,
+  getPatientById,
 } from "./data/appointmentService";
 import "../../styles/doctor-appointments.css";
 
 void motion;
 
-/** Map a Reservation entity from the backend to the UI row shape */
-function mapReservationToRow(r) {
+/** Map a Reservation entity to a UI row.
+ *  @param {object} r       - raw reservation from reservation service
+ *  @param {object|null} p  - patient profile from auth service { firstName, lastName, ... }
+ */
+function mapReservationToRow(r, p = null) {
   const isOnline = r.schedule?.appointmenttype === "ONLINE";
   const isActive = r.reservationStatus;
+
+  // Auth service returns firstName / lastName (camelCase)
+  const firstName = p?.firstName ?? p?.firstname ?? p?.first_name ?? "";
+  const lastName  = p?.lastName  ?? p?.lastname  ?? p?.last_name  ?? "";
+  const fullName  = [firstName, lastName].filter(Boolean).join(" ") || null;
+
   return {
     id: r.id,
     time: r.schedule?.startTime ?? "—",
-    // patientId is a UUID; display it shortened until users service enriches it
-    patient: r.patientId ?? "Patient",
+    endTime: r.schedule?.endTime ?? null,
+    date: r.schedule?.date ?? null,
+    patient: fullName ?? r.patientId ?? "Patient",
+    patientId: r.patientId ?? null,
+    patientFirstName: firstName || null,
+    patientLastName:  lastName  || null,
     type: isOnline ? "Online" : "IRL",
     status: isActive ? "Confirmed" : "Cancelled",
     action: isActive ? (isOnline ? "Join" : "View") : "View",
     meetingUrl: isOnline ? (r.meetingUrl ?? null) : null,
+    duration: r.schedule?.duration ?? null,
+    notes: r.notes ?? null,
     raw: r,
   };
 }
+
+// ─── Appointment Detail Modal ────────────────────────────────────────────────
+
+function AppointmentDetailModal({ appointment, onClose, onCancel }) {
+  if (!appointment) return null;
+
+  const canCancel =
+    appointment.status !== "Cancelled" && appointment.status !== "Completed";
+
+  const handleJoin = () => {
+    if (appointment.meetingUrl) {
+      window.open(appointment.meetingUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
+  // Close on backdrop click
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  const statusColor = {
+    Confirmed: "#16a34a",
+    Cancelled: "#dc2626",
+    Completed: "#2563eb",
+    "In Progress": "#d97706",
+    Pending: "#9333ea",
+  }[appointment.status] ?? "#64748b";
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="apt-modal-overlay"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={handleBackdropClick}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(15,23,42,0.5)",
+          backdropFilter: "blur(5px)",
+          WebkitBackdropFilter: "blur(5px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 200,
+          padding: "16px",
+        }}
+      >
+        <motion.div
+          className="apt-modal"
+          initial={{ opacity: 0, y: 28, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.97 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            background: "#fff",
+            borderRadius: "20px",
+            width: "100%",
+            maxWidth: "520px",
+            boxShadow: "0 32px 80px rgba(0,0,0,0.2)",
+            overflow: "hidden",
+            maxHeight: "90vh",
+            overflowY: "auto",
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%)",
+              padding: "28px 28px 22px",
+              position: "relative",
+            }}
+          >
+            <button
+              onClick={onClose}
+              style={{
+                position: "absolute",
+                top: "18px",
+                right: "18px",
+                background: "rgba(255,255,255,0.18)",
+                border: "none",
+                color: "#fff",
+                width: "32px",
+                height: "32px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "16px",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.3)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+            >
+              <FiX />
+            </button>
+
+            <h2 style={{ color: "#fff", fontSize: "20px", fontWeight: 700, marginBottom: "4px" }}>
+              Appointment Details
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "13px", display: "flex", alignItems: "center", gap: "5px" }}>
+              <FiHash size={12} />
+              {String(appointment.id).slice(0, 18)}…
+            </p>
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "14px", flexWrap: "wrap" }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "5px 12px",
+                  borderRadius: "20px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  background: "rgba(255,255,255,0.18)",
+                  color: "#fff",
+                }}
+              >
+                {appointment.type === "Online" ? <FiGlobe size={11} /> : <FiMapPin size={11} />}
+                {appointment.type === "Online" ? "Online" : "In-Person"}
+              </span>
+
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "5px 12px",
+                  borderRadius: "20px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  background: "rgba(255,255,255,0.18)",
+                  color: "#fff",
+                }}
+              >
+                {appointment.status}
+              </span>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ padding: "24px 28px" }}>
+            {/* Patient */}
+            <SectionLabel>Patient</SectionLabel>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "12px",
+                padding: "14px 16px",
+              }}
+            >
+              <div
+                style={{
+                  width: "44px",
+                  height: "44px",
+                  background: "linear-gradient(135deg, #2563eb, #7c3aed)",
+                  borderRadius: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: "20px",
+                  flexShrink: 0,
+                }}
+              >
+                {(appointment.patientFirstName?.[0] ?? appointment.patient?.[0] ?? "P").toUpperCase()}
+              </div>
+              <div>
+                <strong style={{ display: "block", fontSize: "15px", color: "#1e293b" }}>
+                  {appointment.patientFirstName && appointment.patientLastName
+                    ? `${appointment.patientFirstName} ${appointment.patientLastName}`
+                    : appointment.patient}
+                </strong>
+                <span style={{ fontSize: "12px", color: "#94a3b8", fontFamily: "monospace", display: "block", marginTop: "2px" }}>
+                  ID: {appointment.patientId}
+                </span>
+              </div>
+            </div>
+
+            {/* Schedule */}
+            <SectionLabel>Schedule</SectionLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <InfoItem label="Date" value={appointment.date ?? "June 19, 2026"} />
+              <InfoItem label="Start Time" value={appointment.time} icon={<FiClock size={13} />} />
+              {appointment.endTime && (
+                <InfoItem label="End Time" value={appointment.endTime} />
+              )}
+              {appointment.duration && (
+                <InfoItem label="Duration" value={`${appointment.duration} min`} />
+              )}
+            </div>
+
+            {/* Consultation */}
+            <SectionLabel>Consultation</SectionLabel>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <InfoItem
+                label="Type"
+                value={appointment.type === "Online" ? "🌐 Online" : "📍 In-Person"}
+              />
+              <InfoItem
+                label="Status"
+                value={appointment.status}
+                valueStyle={{ color: statusColor }}
+              />
+              {appointment.meetingUrl && (
+                <div
+                  style={{
+                    gridColumn: "1 / -1",
+                    background: "#f0f9ff",
+                    border: "1px solid #bae6fd",
+                    borderRadius: "10px",
+                    padding: "12px 14px",
+                  }}
+                >
+                  <label
+                    style={{ fontSize: "11px", color: "#0284c7", fontWeight: 700, display: "block", marginBottom: "4px" }}
+                  >
+                    MEETING LINK
+                  </label>
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      color: "#0369a1",
+                      wordBreak: "break-all",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {appointment.meetingUrl}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            {appointment.notes && (
+              <>
+                <SectionLabel>Notes</SectionLabel>
+                <div
+                  style={{
+                    background: "#fffbeb",
+                    border: "1px solid #fde68a",
+                    borderRadius: "10px",
+                    padding: "12px 14px",
+                    fontSize: "14px",
+                    color: "#78350f",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {appointment.notes}
+                </div>
+              </>
+            )}
+
+            {/* Join button for online appointments */}
+            {appointment.type === "Online" &&
+              appointment.meetingUrl &&
+              appointment.status !== "Cancelled" && (
+                <button
+                  onClick={handleJoin}
+                  style={{
+                    width: "100%",
+                    marginTop: "20px",
+                    padding: "14px",
+                    background: "linear-gradient(135deg, #2563eb, #7c3aed)",
+                    border: "none",
+                    borderRadius: "12px",
+                    color: "#fff",
+                    fontSize: "15px",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    transition: "opacity 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                >
+                  <FiVideo />
+                  Join Meeting Room
+                </button>
+              )}
+          </div>
+
+          {/* Footer */}
+          <div
+            style={{
+              borderTop: "1px solid #f1f5f9",
+              padding: "16px 28px",
+              display: "flex",
+              gap: "10px",
+            }}
+          >
+            {canCancel && (
+              <button
+                onClick={() => {
+                  onCancel(appointment.id);
+                  onClose();
+                }}
+                style={{
+                  flex: 1,
+                  padding: "12px",
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  borderRadius: "10px",
+                  color: "#dc2626",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#fee2e2")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "#fef2f2")}
+              >
+                <FiAlertCircle size={14} />
+                Cancel Appointment
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: "12px",
+                background: "#f1f5f9",
+                border: "none",
+                borderRadius: "10px",
+                color: "#475569",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontSize: "14px",
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#e2e8f0")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#f1f5f9")}
+            >
+              Close
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <p
+      style={{
+        fontSize: "11px",
+        fontWeight: 700,
+        color: "#94a3b8",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        margin: "20px 0 12px",
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function InfoItem({ label, value, icon, valueStyle = {} }) {
+  return (
+    <div
+      style={{
+        background: "#f8fafc",
+        border: "1px solid #e2e8f0",
+        borderRadius: "10px",
+        padding: "12px 14px",
+      }}
+    >
+      <label
+        style={{
+          fontSize: "11px",
+          color: "#94a3b8",
+          fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          gap: "4px",
+          marginBottom: "4px",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
+        {icon}
+        {label}
+      </label>
+      <span style={{ fontSize: "14px", color: "#1e293b", fontWeight: 600, ...valueStyle }}>
+        {value ?? "—"}
+      </span>
+    </div>
+  );
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function DoctorAppointmentsPage() {
   const { user } = useContext(AuthContextValue);
@@ -54,23 +481,34 @@ export default function DoctorAppointmentsPage() {
     if (!user?.id) return;
     setLoadingList(true);
     getDoctorAppointments(user.id)
-     .then(async (data) => {
+      .then(async (data) => {
         const basic = Array.isArray(data) ? data : [];
 
-        const detailed = await Promise.allSettled(
+        // Step 1: fetch full reservation details
+        const detailedResults = await Promise.allSettled(
           basic.map((r) =>
             getReservationById(r.id)
               .then((full) => full)
               .catch(() => r)
           )
         );
-
-        const full = detailed
+        const fullReservations = detailedResults
           .filter((r) => r.status === "fulfilled")
           .map((r) => r.value);
 
-        const rows = full.map(mapReservationToRow);
-       setAppointmentsList(rows);
+        // Step 2: fetch patient name from auth service for each reservation
+        const patientResults = await Promise.allSettled(
+          fullReservations.map((r) =>
+            r.patientId ? getPatientById(r.patientId).catch(() => null) : Promise.resolve(null)
+          )
+        );
+
+        const rows = fullReservations.map((r, i) => {
+          const patient = patientResults[i].status === "fulfilled" ? patientResults[i].value : null;
+          return mapReservationToRow(r, patient);
+        });
+
+        setAppointmentsList(rows);
       })
       .catch(() => setAppointmentsList([]))
       .finally(() => setLoadingList(false));
@@ -78,47 +516,54 @@ export default function DoctorAppointmentsPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(null);
-  
+
   // Filter states
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterType, setFilterType] = useState("All");
-  
-  // Pagination / Load More
+
+  // Pagination
   const [displayCount, setDisplayCount] = useState(4);
+
+  // Detail modal
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    setDisplayCount(4); // Reset pagination on search
+    setDisplayCount(4);
   };
 
-  const handleActionClick = (id) => {
-  const app = appointmentsList.find((a) => a.id === id);
+  const handleActionClick = useCallback(
+    (id) => {
+      const app = appointmentsList.find((a) => a.id === id);
+      if (!app) return;
 
-  // View — no action needed, could navigate to detail page later
-  if (app?.action === "View") return;
-
-  // For online appointments with a meeting URL, open the Jitsi room
-  if ((app?.action === "Join" || app?.action === "Start") && app?.meetingUrl) {
-    window.open(app.meetingUrl, "_blank", "noopener,noreferrer");
-  }
-
-  setAppointmentsList((prev) =>
-    prev.map((a) => {
-      if (a.id === id) {
-        if (a.action === "Start" || a.action === "Join") {
-          return { ...a, status: "In Progress", action: "Finish" };
-        }
-        if (a.action === "Finish") {
-          return { ...a, status: "Completed", action: "View" };
-        }
+      // View → open the detail modal
+      if (app.action === "View") {
+        setSelectedAppointment(app);
+        return;
       }
-      return a;
-    })
-  );
-};
 
-  const handleCancel = async (id) => {
+      // Join / Start → open meeting room
+      if ((app.action === "Join" || app.action === "Start") && app.meetingUrl) {
+        window.open(app.meetingUrl, "_blank", "noopener,noreferrer");
+      }
+
+      setAppointmentsList((prev) =>
+        prev.map((a) => {
+          if (a.id !== id) return a;
+          if (a.action === "Start" || a.action === "Join")
+            return { ...a, status: "In Progress", action: "Finish" };
+          if (a.action === "Finish")
+            return { ...a, status: "Completed", action: "View" };
+          return a;
+        })
+      );
+    },
+    [appointmentsList]
+  );
+
+  const handleCancel = useCallback(async (id) => {
     setShowDropdown(null);
     try {
       await cancelAppointment(id);
@@ -127,16 +572,23 @@ export default function DoctorAppointmentsPage() {
           app.id === id ? { ...app, status: "Cancelled", action: "View" } : app
         )
       );
+      // Refresh modal if it's showing the same appointment
+      setSelectedAppointment((prev) =>
+        prev?.id === id ? { ...prev, status: "Cancelled", action: "View" } : prev
+      );
     } catch {
       alert("Failed to cancel appointment. Please try again.");
     }
-  };
+  }, []);
 
   const filteredAppointments = useMemo(() => {
     return appointmentsList.filter((app) => {
-      const matchesSearch = app.patient.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = app.patient
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
       const matchesType = filterType === "All" || app.type === filterType;
-      const matchesStatus = filterStatus === "All" || app.status === filterStatus;
+      const matchesStatus =
+        filterStatus === "All" || app.status === filterStatus;
       return matchesSearch && matchesType && matchesStatus;
     });
   }, [appointmentsList, searchTerm, filterType, filterStatus]);
@@ -146,21 +598,20 @@ export default function DoctorAppointmentsPage() {
 
   const stats = useMemo(() => {
     const total = appointmentsList.length;
-    const confirmed = appointmentsList.filter(a => a.status === "Confirmed" || a.status === "In Progress").length;
-    const pending = appointmentsList.filter(a => a.status === "Pending").length;
-    const cancelled = appointmentsList.filter(a => a.status === "Cancelled").length;
+    const confirmed = appointmentsList.filter(
+      (a) => a.status === "Confirmed" || a.status === "In Progress"
+    ).length;
+    const pending = appointmentsList.filter((a) => a.status === "Pending").length;
+    const cancelled = appointmentsList.filter((a) => a.status === "Cancelled").length;
 
+    const fmt = (n) => (n < 10 ? `0${n}` : n);
     return [
-      { title: "Total Appointments", value: total < 10 ? `0${total}` : total, icon: <FiCalendar />, color: "blue", sub: "Today" },
-      { title: "Confirmed", value: confirmed < 10 ? `0${confirmed}` : confirmed, icon: <FiCheckCircle />, color: "green", sub: "Today" },
-      { title: "Pending", value: pending < 10 ? `0${pending}` : pending, icon: <FiClock />, color: "orange", sub: "Today" },
-      { title: "Cancelled", value: cancelled < 10 ? `0${cancelled}` : cancelled, icon: <FiXCircle />, color: "red", sub: "Today" },
+      { title: "Total Appointments", value: fmt(total), icon: <FiCalendar />, color: "blue", sub: "Today" },
+      { title: "Confirmed", value: fmt(confirmed), icon: <FiCheckCircle />, color: "green", sub: "Today" },
+      { title: "Pending", value: fmt(pending), icon: <FiClock />, color: "orange", sub: "Today" },
+      { title: "Cancelled", value: fmt(cancelled), icon: <FiXCircle />, color: "red", sub: "Today" },
     ];
   }, [appointmentsList]);
-
-  const handleLoadMore = () => {
-    setDisplayCount(prev => prev + 4);
-  };
 
   return (
     <DashboardShell title="Dashboard" description="Appointments">
@@ -173,7 +624,6 @@ export default function DoctorAppointmentsPage() {
         >
           <div>
             <h2>Manage and track all patient appointments</h2>
-
             <div className="doctor-appointments-subtitle">
               <span>Today's Statistics</span>
               <div className="doctor-date-small">
@@ -182,7 +632,6 @@ export default function DoctorAppointmentsPage() {
               </div>
             </div>
           </div>
-
           <button className="doctor-date-btn">
             <FiCalendar />
             June 19, 2026
@@ -225,36 +674,57 @@ export default function DoctorAppointmentsPage() {
             <div className="appointments-card-actions" style={{ position: "relative" }}>
               <div className="appointments-search-box">
                 <FiSearch />
-                <input 
-                  placeholder="Search patient by name..." 
+                <input
+                  placeholder="Search patient by name..."
                   value={searchTerm}
                   onChange={handleSearch}
                 />
               </div>
 
-              <button 
+              <button
                 className="appointments-filter-btn"
                 onClick={() => setShowFilterMenu(!showFilterMenu)}
               >
                 <FiSliders />
                 Filter
                 {(filterType !== "All" || filterStatus !== "All") && (
-                   <span style={{width: 8, height: 8, background: '#2388ff', borderRadius: '50%', marginLeft: 4}} />
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      background: "#2388ff",
+                      borderRadius: "50%",
+                      marginLeft: 4,
+                    }}
+                  />
                 )}
               </button>
 
               <AnimatePresence>
                 {showFilterMenu && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    style={{ position: "absolute", top: "54px", right: 0, background: "#fff", border: "1px solid #e2e8f0", borderRadius: "10px", padding: "20px", width: "260px", boxShadow: "0 10px 25px rgba(0,0,0,0.1)", zIndex: 20 }}
+                    style={{
+                      position: "absolute",
+                      top: "54px",
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "10px",
+                      padding: "20px",
+                      width: "260px",
+                      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                      zIndex: 20,
+                    }}
                   >
-                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>Status</h4>
-                    <select 
-                      value={filterStatus} 
+                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>
+                      Status
+                    </h4>
+                    <select
+                      value={filterStatus}
                       onChange={(e) => { setFilterStatus(e.target.value); setDisplayCount(4); }}
                       style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", marginBottom: "20px", fontSize: "14px", outline: "none", background: "#f8fafc" }}
                     >
@@ -266,9 +736,11 @@ export default function DoctorAppointmentsPage() {
                       <option value="Cancelled">Cancelled</option>
                     </select>
 
-                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>Consultation Type</h4>
-                    <select 
-                      value={filterType} 
+                    <h4 style={{ margin: "0 0 12px", fontSize: "14px", color: "#1e293b", fontWeight: "700" }}>
+                      Consultation Type
+                    </h4>
+                    <select
+                      value={filterType}
                       onChange={(e) => { setFilterType(e.target.value); setDisplayCount(4); }}
                       style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #cbd5e1", fontSize: "14px", outline: "none", background: "#f8fafc" }}
                     >
@@ -277,11 +749,11 @@ export default function DoctorAppointmentsPage() {
                       <option value="Online">Online</option>
                     </select>
 
-                    <button 
+                    <button
                       onClick={() => { setFilterStatus("All"); setFilterType("All"); setDisplayCount(4); setShowFilterMenu(false); }}
                       style={{ marginTop: "24px", width: "100%", padding: "10px", background: "#f1f5f9", border: "none", borderRadius: "8px", color: "#475569", cursor: "pointer", fontWeight: "600", transition: "all 0.2s" }}
-                      onMouseEnter={(e) => e.target.style.background = "#e2e8f0"}
-                      onMouseLeave={(e) => e.target.style.background = "#f1f5f9"}
+                      onMouseEnter={(e) => (e.target.style.background = "#e2e8f0")}
+                      onMouseLeave={(e) => (e.target.style.background = "#f1f5f9")}
                     >
                       Reset Filters
                     </button>
@@ -315,16 +787,12 @@ export default function DoctorAppointmentsPage() {
                       whileHover={{ scale: 1.01 }}
                     >
                       <div className="appointment-time">
-                        <span className="row-icon">
-                          <FiClock />
-                        </span>
+                        <span className="row-icon"><FiClock /></span>
                         <strong>{item.time}</strong>
                       </div>
 
                       <div className="appointment-patient">
-                        <span className="row-icon">
-                          <FiUser />
-                        </span>
+                        <span className="row-icon"><FiUser /></span>
                         <strong>{item.patient}</strong>
                       </div>
 
@@ -334,15 +802,13 @@ export default function DoctorAppointmentsPage() {
                       </div>
 
                       <div>
-                        <span
-                          className={`appointment-status ${item.status.toLowerCase().replace(" ", "-")}`}
-                        >
+                        <span className={`appointment-status ${item.status.toLowerCase().replace(" ", "-")}`}>
                           {item.status}
                         </span>
                       </div>
 
                       <div className="appointment-action" style={{ position: "relative" }}>
-                        <button 
+                        <button
                           className={`action-btn ${item.action.toLowerCase()}`}
                           onClick={() => handleActionClick(item.id)}
                         >
@@ -353,25 +819,43 @@ export default function DoctorAppointmentsPage() {
                           {item.action}
                         </button>
 
-                        <button 
+                        <button
                           className="more-btn"
-                          onClick={() => setShowDropdown(showDropdown === item.id ? null : item.id)}
+                          onClick={() =>
+                            setShowDropdown(showDropdown === item.id ? null : item.id)
+                          }
                         >
                           <FiMoreVertical />
                         </button>
-                        
+
                         <AnimatePresence>
                           {showDropdown === item.id && (
-                            <motion.div 
+                            <motion.div
                               initial={{ opacity: 0, y: -5 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -5 }}
-                              style={{ position: 'absolute', top: '45px', right: '0', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, minWidth: "160px" }}
+                              style={{
+                                position: "absolute",
+                                top: "45px",
+                                right: "0",
+                                background: "#fff",
+                                border: "1px solid #e2e8f0",
+                                borderRadius: "8px",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                                zIndex: 10,
+                                minWidth: "160px",
+                              }}
                             >
-                              <button 
+                              <button
+                                onClick={() => { setSelectedAppointment(item); setShowDropdown(null); }}
+                                style={{ display: "block", width: "100%", padding: "12px 16px", background: "transparent", border: "none", color: "#2563eb", cursor: "pointer", fontWeight: 600, textAlign: "left" }}
+                              >
+                                View Details
+                              </button>
+                              <button
                                 onClick={() => handleCancel(item.id)}
                                 disabled={item.status === "Cancelled" || item.status === "Completed"}
-                                style={{ display: 'block', width: '100%', padding: '12px 16px', background: 'transparent', border: 'none', color: item.status === "Cancelled" || item.status === "Completed" ? '#cbd5e1' : '#e92735', cursor: item.status === "Cancelled" || item.status === "Completed" ? 'not-allowed' : 'pointer', fontWeight: '600', textAlign: 'left' }}
+                                style={{ display: "block", width: "100%", padding: "12px 16px", background: "transparent", border: "none", color: item.status === "Cancelled" || item.status === "Completed" ? "#cbd5e1" : "#e92735", cursor: item.status === "Cancelled" || item.status === "Completed" ? "not-allowed" : "pointer", fontWeight: 600, textAlign: "left" }}
                               >
                                 Cancel Appointment
                               </button>
@@ -392,13 +876,13 @@ export default function DoctorAppointmentsPage() {
 
           <AnimatePresence>
             {hasMore && (
-              <motion.div 
+              <motion.div
                 className="load-more-wrap"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <button className="load-more-btn" onClick={handleLoadMore}>
+                <button className="load-more-btn" onClick={() => setDisplayCount((p) => p + 4)}>
                   Load More <FiChevronDown />
                 </button>
               </motion.div>
@@ -406,6 +890,15 @@ export default function DoctorAppointmentsPage() {
           </AnimatePresence>
         </motion.section>
       </div>
+
+      {/* Appointment Detail Modal */}
+      {selectedAppointment && (
+        <AppointmentDetailModal
+          appointment={selectedAppointment}
+          onClose={() => setSelectedAppointment(null)}
+          onCancel={handleCancel}
+        />
+      )}
     </DashboardShell>
   );
 }

@@ -1,5 +1,7 @@
 import { getStoredAccessToken } from "../../../services/authStorage"; 
 import { R, RESERVATION_URL } from "./reservationEndpoints";
+import { API_ENDPOINTS, API_BASE_URL } from "../../../lib/constants/api"; // adjust path if needed
+
 
 const BASE_URL = RESERVATION_URL;
 
@@ -31,6 +33,22 @@ async function apiFetch(path, options = {}) {
   // 204 No Content
   if (res.status === 204) return null;
   return res.json();
+}
+
+/** Fetch patient profile via Vite proxy (dev) or direct (prod) — avoids CORS. */
+export async function getPatientById(patientId) {
+  const token = getStoredAccessToken();
+  const res = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.PATIENTS.BY_ID(patientId)}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    }
+  );
+  if (!res.ok) throw new Error("Patient not found");
+  return res.json(); // { firstName, lastName, ... }
 }
 
 export async function getPatientAppointments(patientId) {
