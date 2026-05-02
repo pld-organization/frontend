@@ -10,15 +10,15 @@ export const API_ENDPOINTS = {
   },
 
   PATIENTS: {
-    LIST: "/patients",
-    BY_ID: (id) => `/patients/${id}`,
-    PROFILE: "/patients/profile",
+    LIST: "/auth/patients",
+    BY_ID: (id) => `/auth/patient/${id}`,
+    PROFILE: "/auth/patients/profile",
   },
 
   DOCTORS: {
-    LIST: "/doctors",
-    BY_ID: (id) => `/doctors/${id}`,
-    AVAILABLE: "/doctors/available",
+    LIST: "/auth/doctors",
+    BY_ID: (id) => `/auth/doctor/${id}`,
+    AVAILABLE: "/auth/doctors/available",
     ALL_IDS: "/auth/doctors/ids",
     BY_ID_AUTH: (id) => `/auth/doctor/${id}`,
   },

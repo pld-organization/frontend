@@ -21,6 +21,7 @@ import DoctorConsultationPage from "../features/consultations/DoctorConsultation
 import DoctorPatientsPage from "../features/consultations/DoctorPatientsPage";
 import DoctorSchedulePage from "../features/appointments/DoctorSchedulePage";
 import DoctorSetAvailabilityPage from "../features/appointments/DoctorSetAvailabilityPage";
+import PatientSchedulePage from "../features/appointments/PatientSchedulePage";
 import HelpPage from "../pages/HelpPage";
 function AppRouter() {
   return (
@@ -163,6 +164,14 @@ function AppRouter() {
         }
       />
 
+      <Route
+        path="/schedule"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <PatientSchedulePage />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/appointments"
         element={

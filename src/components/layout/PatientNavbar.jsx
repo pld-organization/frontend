@@ -3,8 +3,8 @@ import { FiGrid, FiClock, FiUsers, FiActivity, FiUser } from "react-icons/fi";
 
 const patientMenu = [
   { label: "Overview", to: "/patient-dashboard", icon: <FiGrid /> },
-  { label: "Schedule", to: "/appointments", icon: <FiClock /> },
-  { label: "Available Doctors", to: "/doctors", icon: <FiUsers /> },
+  { label: "Schedule", to: "/schedule", icon: <FiClock /> },
+  { label: "Available Doctors", to: "/appointments", icon: <FiUsers /> },
   { label: "Analysis", to: "/analysis", icon: <FiActivity /> },
   { label: "Profile", to: "/patient/profile", icon: <FiUser /> },
 ];
