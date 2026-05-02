@@ -1,17 +1,54 @@
 import { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 
+import DashboardShell from "../../components/layout/DashboardShell";
 import AppointmentCard from "./AppointmentCard";
 import Spinner from "../../components/shared/Spinner";
 import EmptyState from "../../components/shared/EmptyState";
 import ConfirmModal from "../../components/shared/ConfirmModal";
 import {
   getPatientAppointments,
+  getReservationById,
   cancelAppointment,
 } from "./data/appointmentService";
+import apiClient from "../../services/apiClient";
+import { API_ENDPOINTS } from "../../lib/constants/api";
 import AuthContextValue from "../../context/AuthContextValue";
 import { FiCalendar } from "react-icons/fi";
 import "../../styles/patient-schedule.css";
+
+/**
+ * Fetch doctor profile from the auth service.
+ * Returns null silently on failure.
+ */
+async function fetchDoctorProfile(doctorId) {
+  try {
+    const { data } = await apiClient.get(API_ENDPOINTS.DOCTORS.BY_ID(doctorId));
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Maps a fully-loaded Reservation (with schedule joined) + doctor profile
+ * into the shape AppointmentCard expects.
+ */
+function mapReservation(r, doctorProfile) {
+  return {
+    id:     r.id,
+    doctor: {
+      firstName:  doctorProfile?.firstName  ?? "Unknown",
+      lastName:   doctorProfile?.lastName   ?? "",
+      speciality: doctorProfile?.speciality ?? "",
+    },
+    date:   r.schedule?.dayOfWeek  ?? "—",
+    time:   r.schedule?.startTime  ?? "—",
+    type:   r.schedule?.appointmenttype === "ONLINE" ? "online" : "in-person",
+    status: r.reservationStatus ? "confirmed" : "cancelled",
+    reason: r.reason ?? "",
+  };
+}
 
 export default function PatientSchedulePage() {
   const { user } = useContext(AuthContextValue);
@@ -33,8 +70,26 @@ export default function PatientSchedulePage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getPatientAppointments(user.id);
-      setAppointments(Array.isArray(data) ? data : []);
+
+      // 1 — get reservation list (schedule is null here — backend doesn't join it)
+      const list = await getPatientAppointments(user.id);
+      if (!Array.isArray(list) || list.length === 0) {
+        setAppointments([]);
+        return;
+      }
+
+      // 2 — re-fetch each reservation by ID in parallel (this endpoint DOES join schedule)
+      const fullReservations = await Promise.all(list.map((r) => getReservationById(r.id)));
+
+      // 3 — fetch unique doctor profiles in parallel
+      const uniqueDoctorIds = [...new Set(fullReservations.map((r) => r.doctorId).filter(Boolean))];
+      const doctorProfiles  = await Promise.all(uniqueDoctorIds.map(fetchDoctorProfile));
+      const doctorMap       = Object.fromEntries(uniqueDoctorIds.map((id, i) => [id, doctorProfiles[i]]));
+
+      // 4 — map to AppointmentCard shape
+      const mapped = fullReservations.map((r) => mapReservation(r, doctorMap[r.doctorId]));
+      setAppointments(mapped);
+
     } catch {
       setError("Failed to load appointments. Please try again later.");
     } finally {
@@ -65,7 +120,7 @@ export default function PatientSchedulePage() {
   }
 
   return (
-    <>
+    <DashboardShell title="My Schedule" description="Dashboard > Schedule">
       <div className="patient-schedule-page">
         {loading ? (
           <Spinner message="Loading your appointments..." />
@@ -113,6 +168,6 @@ export default function PatientSchedulePage() {
         onConfirm={handleConfirmCancel}
         onCancel={() => !cancelLoading && setModalOpen(false)}
       />
-    </>
+    </DashboardShell>
   );
 }

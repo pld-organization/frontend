@@ -1,10 +1,3 @@
-/**
- * AvailableDoctorsPage.jsx
- *
- * Shows doctors the patient can book an appointment with.
- * Doctor list comes from the Users/Auth service (existing apiClient).
- * Booking is handled inside DoctorCard → appointmentService → Reservation service.
- */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
