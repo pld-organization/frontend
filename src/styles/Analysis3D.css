@@ -1,0 +1,146 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f8f9fa;
+  }
+  
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .main {
+    flex: 1;
+    padding: 30px;
+  }
+  
+  /* HEADER */
+  .breadcrumb {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .breadcrumb h2 {
+    margin: 0;
+  }
+  
+  .breadcrumb p {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  /* WARNING */
+  .warning {
+    background: #fff4e5;
+    border: 1px solid #ffc107;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 8px;
+  }
+  
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+  }
+  
+  /* VIEWER */
+  .viewer {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .viewer-header {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .viewer-title {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  
+  .viewer-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .canvas {
+    height: 500px;
+    background: #020617;
+    position: relative;
+  }
+  
+  /* BUTTON */
+  .btn {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+  }
+  
+  .btn.active {
+    background: blue;
+    color: white;
+  }
+  
+  /* STATUS */
+  .status {
+    font-size: 12px;
+  }
+  
+  /* OVERLAY */
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+  
+  .overlay.error {
+    color: red;
+  }
+  
+  /* SIDEBAR */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  /* CARD */
+  .card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 8px;
+  }
+  
+  .card h3 {
+    margin: 0;
+  }
+  
+  .card h4 {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .big {
+    font-size: 28px;
+    font-weight: bold;
+  }

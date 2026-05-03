@@ -16,12 +16,17 @@ import DoctorAppointmentsPage from "../features/appointments/DoctorAppointmentsP
 import PatientAppointmentsPage from "../features/appointments/PatientAppointmentsPage";
 import ConsultationListPage from "../features/consultations/ConsultationListPage";
 import ConsultationDetailsPage from "../features/consultations/ConsultationDetailsPage";
-import PatientAnalysisPage from "../features/analysis/PatientAnalysisPage";
+import AIResultsDashboard from "../features/analysis/mainai";
+import MedicalAnalysisDashboard1 from "../features/analysis/1Dai"
+import MedicalAnalysisDashboard from "../features/analysis/2Dai"
+import Analysis3D from "../features/analysis/3Dai"
+import MedicalDashboard4 from "../features/analysis/mainresult"
 import DoctorConsultationPage from "../features/consultations/DoctorConsultationPage";
 import DoctorPatientsPage from "../features/consultations/DoctorPatientsPage";
 import DoctorSchedulePage from "../features/appointments/DoctorSchedulePage";
 import DoctorSetAvailabilityPage from "../features/appointments/DoctorSetAvailabilityPage";
 import HelpPage from "../pages/HelpPage";
+import PatientSchedulePage from "../features/appointments/PatientSchedulePage";
 function AppRouter() {
   return (
     <Routes>
@@ -74,6 +79,14 @@ function AppRouter() {
         }
       />
       <Route
+        path="/doctor/overview"
+        element={
+        <PrivateRoute allowedRoles={["DOCTOR"]}>
+          <DoctorOverviewPage />
+        </PrivateRoute>
+       }
+      />
+      <Route
         path="/patient/dashboard"
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>
@@ -118,7 +131,43 @@ function AppRouter() {
         path="/analysis"
         element={
           <PrivateRoute allowedRoles={["PATIENT"]}>
-            <PatientAnalysisPage />
+            <AIResultsDashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/analysis/1Danalysis"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <MedicalAnalysisDashboard1 />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/analysis/2Danalysis"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <MedicalAnalysisDashboard />
+          </PrivateRoute>
+        }
+      />
+ 
+      <Route
+        path="/analysis/3Danalysis"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <Analysis3D />
+          </PrivateRoute>
+        }
+      />
+
+
+      
+      <Route
+        path="/analysis/models"
+        element={
+          <PrivateRoute allowedRoles={["PATIENT"]}>
+            <MedicalDashboard4 />
           </PrivateRoute>
         }
       />
@@ -147,6 +196,14 @@ function AppRouter() {
         }
       />
       <Route
+       path="/schedule"
+       element={
+         <PrivateRoute allowedRoles={["PATIENT"]}>
+           <PatientSchedulePage />
+         </PrivateRoute>
+       }
+      />
+      <Route
         path="/settings"
         element={
           <PrivateRoute>
@@ -162,7 +219,6 @@ function AppRouter() {
           </PrivateRoute>
         }
       />
-
       <Route
         path="/appointments"
         element={

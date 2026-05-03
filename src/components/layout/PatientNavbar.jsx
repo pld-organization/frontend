@@ -1,12 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { FiGrid, FiClock, FiUsers, FiActivity, FiUser } from "react-icons/fi";
+import { FiGrid, FiClock, FiUsers, FiActivity, FiMessageCircle } from "react-icons/fi";
 
 const patientMenu = [
   { label: "Overview", to: "/patient-dashboard", icon: <FiGrid /> },
-  { label: "Schedule", to: "/appointments", icon: <FiClock /> },
-  { label: "Available Doctors", to: "/doctors", icon: <FiUsers /> },
+  { label: "Schedule", to: "/schedule", icon: <FiClock /> },
+  { label: "Appointment", to: "/appointments", icon: <FiUsers /> },
   { label: "Analysis", to: "/analysis", icon: <FiActivity /> },
-  { label: "Profile", to: "/patient/profile", icon: <FiUser /> },
+  { label: "Consultation", to: "/consultation", icon: <FiMessageCircle /> },
 ];
 
 export function PatientNavbar() {

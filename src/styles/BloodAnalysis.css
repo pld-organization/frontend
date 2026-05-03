@@ -1,0 +1,609 @@
+/* BloodAnalysis.css */
+
+/* Layout */
+.blood-analysis-container {
+    background-color: #f8f9fa;
+    color: #1e293b;
+    display: flex;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  /* ── Sidebar ── */
+  .sidebar {
+    height: 100vh;
+    width: 224px;
+    position: fixed;
+    background-color: white;
+    border-right: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+  
+  .logo-section {
+    margin-bottom: 32px;
+    padding: 0 4px;
+  }
+  
+  .logo-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1d4ed8;
+    letter-spacing: -0.025em;
+  }
+  
+  .logo-subtitle {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  
+  .nav-menu {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: #64748b;
+  }
+  
+  .nav-item:hover {
+    color: #1d4ed8;
+    background-color: #f8fafc;
+  }
+  
+  .nav-item.active {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    font-weight: 500;
+  }
+  
+  .nav-icon {
+    font-size: 18px;
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+  }
+  
+  .start-analysis-btn {
+    margin-top: auto;
+    width: 100%;
+    background-color: #1d4ed8;
+    color: white;
+    padding: 10px 0;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .start-analysis-btn:hover {
+    background-color: #1e40af;
+  }
+  
+  /* ── Main Content ── */
+  .main-content {
+    margin-left: 224px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .header-brand {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d4ed8;
+  }
+  
+  .search-box {
+    display: flex;
+    align-items: center;
+    background-color: #f1f5f9;
+    padding: 8px 12px;
+    border-radius: 9999px;
+    gap: 8px;
+  }
+  
+  .search-icon {
+    font-size: 16px;
+    color: #94a3b8;
+    font-family: 'Material Symbols Outlined';
+  }
+  
+  .search-input {
+    background-color: transparent;
+    outline: none;
+    border: none;
+    font-size: 12px;
+    color: #334155;
+    width: 144px;
+  }
+  
+  .search-input::placeholder {
+    color: #94a3b8;
+  }
+  
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .header-icon {
+    font-size: 20px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+    font-family: 'Material Symbols Outlined';
+  }
+  
+  .header-icon:hover {
+    color: #475569;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: 12px;
+    border-left: 1px solid #e2e8f0;
+  }
+  
+  .user-details {
+    text-align: right;
+  }
+  
+  .user-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+  
+  .user-role {
+    font-size: 10px;
+    color: #94a3b8;
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #1d4ed8;
+  }
+  
+  /* Body */
+  .body-container {
+    padding: 28px;
+    max-width: 1024px;
+    width: 100%;
+    margin: 0 auto;
+  }
+  
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 4px;
+  }
+  
+  .page-subtitle {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 24px;
+  }
+  
+  /* Stat Cards Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  .stat-card {
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .stat-label {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+    font-weight: 600;
+  }
+  
+  .stat-value-red {
+    color: #b91c1c;
+  }
+  
+  .stat-value-amber {
+    color: #b45309;
+  }
+  
+  .stat-value-blue {
+    color: #1d4ed8;
+  }
+  
+  .stat-value-slate {
+    color: #0f172a;
+  }
+  
+  .stat-unit {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-left: 4px;
+    font-weight: normal;
+  }
+  
+  .stat-delta {
+    font-size: 11px;
+    margin-top: 4px;
+  }
+  
+  .stat-delta-red {
+    color: #991b1b;
+  }
+  
+  .stat-delta-amber {
+    color: #92400e;
+  }
+  
+  .stat-delta-blue {
+    color: #1e40af;
+  }
+  
+  .stat-delta-slate {
+    color: #94a3b8;
+  }
+  
+  /* Table Card */
+  .table-card {
+    background-color: white;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .table-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .table-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  
+  .table-badge {
+    font-size: 11px;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 500;
+  }
+  
+  .data-table {
+    width: 100%;
+    text-align: left;
+  }
+  
+  .table-head {
+    background-color: #f8fafc;
+  }
+  
+  .table-header-cell {
+    padding: 12px 20px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .table-row {
+    border-top: 1px solid #f1f5f9;
+    transition: background-color 0.2s;
+  }
+  
+  .table-row:hover {
+    background-color: #f8fafc;
+  }
+  
+  .table-cell {
+    padding: 14px 20px;
+    font-size: 14px;
+  }
+  
+  .table-cell-name {
+    font-weight: 500;
+    color: #1e293b;
+  }
+  
+  .table-cell-result {
+    color: #334155;
+  }
+  
+  .table-cell-range {
+    color: #94a3b8;
+  }
+  
+  .progress-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .progress-bar-bg {
+    flex: 1;
+    height: 6px;
+    background-color: #f1f5f9;
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+  }
+  
+  .progress-bar-red {
+    background-color: #f87171;
+  }
+  
+  .progress-bar-amber {
+    background-color: #fbbf24;
+  }
+  
+  .progress-bar-blue {
+    background-color: #60a5fa;
+  }
+  
+  .progress-percentage {
+    font-size: 10px;
+    color: #94a3b8;
+    width: 28px;
+    text-align: right;
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  
+  .status-badge-low {
+    background-color: #fef2f2;
+    color: #b91c1c;
+  }
+  
+  .status-badge-high {
+    background-color: #fffbeb;
+    color: #92400e;
+  }
+  
+  .status-badge-normal {
+    background-color: #eff6ff;
+    color: #1e40af;
+  }
+  
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  
+  .status-dot-red {
+    background-color: #ef4444;
+  }
+  
+  .status-dot-amber {
+    background-color: #f59e0b;
+  }
+  
+  .status-dot-blue {
+    background-color: #3b82f6;
+  }
+  
+  /* Insights Grid */
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  .insight-card {
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid;
+  }
+  
+  .insight-red {
+    background-color: #fef2f2;
+    border-color: #fee2e2;
+  }
+  
+  .insight-amber {
+    background-color: #fffbeb;
+    border-color: #fef3c7;
+  }
+  
+  .insight-blue {
+    background-color: #eff6ff;
+    border-color: #dbeafe;
+  }
+  
+  .insight-icon-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  
+  .insight-icon-red {
+    background-color: #fee2e2;
+  }
+  
+  .insight-icon-amber {
+    background-color: #fef3c7;
+  }
+  
+  .insight-icon-blue {
+    background-color: #dbeafe;
+  }
+  
+  .insight-icon {
+    font-size: 16px;
+    font-family: 'Material Symbols Outlined';
+  }
+  
+  .insight-icon-text-red {
+    color: #dc2626;
+  }
+  
+  .insight-icon-text-amber {
+    color: #d97706;
+  }
+  
+  .insight-icon-text-blue {
+    color: #2563eb;
+  }
+  
+  .insight-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  
+  .insight-title-red {
+    color: #7f1d1d;
+  }
+  
+  .insight-title-amber {
+    color: #78350f;
+  }
+  
+  .insight-title-blue {
+    color: #1e3a8a;
+  }
+  
+  .insight-text {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  
+  .insight-text-red {
+    color: #991b1b;
+  }
+  
+  .insight-text-amber {
+    color: #92400e;
+  }
+  
+  .insight-text-blue {
+    color: #1e40af;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .insights-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      display: none;
+    }
+    
+    .main-content {
+      margin-left: 0;
+    }
+    
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .insights-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .table-header-cell,
+    .table-cell {
+      padding: 12px;
+    }
+    
+    .body-container {
+      padding: 16px;
+    }
+  }

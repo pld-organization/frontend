@@ -667,3 +667,22 @@
     min-width: 100%;
   }
 }
+.profile-status-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #eef6ff;
+  color: #1d4ed8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profile-status-error {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.profile-status-success {
+  background: #ecfdf5;
+  color: #047857;
+}

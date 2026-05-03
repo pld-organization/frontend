@@ -1,0 +1,336 @@
+/* AnalysisCard.css */
+
+/* Card Container */
+.analysis-card {
+    position: relative;
+    background-color: white;
+    border-radius: 16px;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    padding: 24px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.5s ease;
+  }
+  
+  .analysis-card:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    transform: translateY(-4px);
+  }
+  
+  /* Gradient Overlay */
+  .card-gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  
+  .analysis-card:hover .card-gradient-overlay {
+    opacity: 1;
+  }
+  
+  /* Gradient variants */
+  .gradient-low {
+    --gradient-start: rgba(254, 226, 226, 0.8);
+    --gradient-end: rgba(254, 202, 202, 0.8);
+  }
+  
+  .gradient-medium {
+    --gradient-start: rgba(254, 242, 204, 0.8);
+    --gradient-end: rgba(253, 230, 138, 0.8);
+  }
+  
+  .gradient-high {
+    --gradient-start: rgba(220, 252, 231, 0.8);
+    --gradient-end: rgba(187, 247, 208, 0.8);
+  }
+  
+  /* Main Content Container */
+  .card-content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* Left Section - Type and Date */
+  .card-left-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+  }
+  
+  .scan-type-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .scan-type-badge {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #e0f2fe, #dbeafe);
+    color: #1e40af;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  
+  .date-info {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .date-label {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .date-value {
+    font-size: 14px;
+    color: #475569;
+    font-weight: 500;
+  }
+  
+  /* Middle Section - Model Info */
+  .card-middle-section {
+    min-width: 180px;
+    padding-left: 16px;
+    border-left: 1px solid rgba(226, 232, 240, 0.6);
+  }
+  
+  .model-label {
+    font-size: 12px;
+    color: #94a3b8;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .model-name {
+    font-size: 14px;
+    color: #0f172a;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+  
+  /* Confidence Section */
+  .card-confidence-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .confidence-box {
+    position: relative;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--confidence-bg-start), var(--confidence-bg-end));
+    border: 1px solid var(--confidence-ring);
+  }
+  
+  /* Confidence box variants */
+  .confidence-box.low {
+    --confidence-bg-start: #fef2f2;
+    --confidence-bg-end: #fee2e2;
+    --confidence-ring: rgba(239, 68, 68, 0.2);
+  }
+  
+  .confidence-box.medium {
+    --confidence-bg-start: #fefce8;
+    --confidence-bg-end: #fef08a;
+    --confidence-ring: rgba(250, 204, 21, 0.2);
+  }
+  
+  .confidence-box.high {
+    --confidence-bg-start: #f0fdf4;
+    --confidence-bg-end: #dcfce7;
+    --confidence-ring: rgba(34, 197, 94, 0.2);
+  }
+  
+  .confidence-content {
+    text-align: center;
+  }
+  
+  .confidence-label {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  
+  .confidence-value-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  .confidence-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .confidence-icon.low {
+    color: #ef4444;
+  }
+  
+  .confidence-icon.medium {
+    color: #eab308;
+  }
+  
+  .confidence-icon.high {
+    color: #22c55e;
+  }
+  
+  .confidence-percentage {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  
+  .confidence-percentage.low {
+    color: #ef4444;
+  }
+  
+  .confidence-percentage.medium {
+    color: #eab308;
+  }
+  
+  .confidence-percentage.high {
+    color: #22c55e;
+  }
+  
+  /* Right Section - Prediction and Button */
+  .card-right-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+  
+  .prediction-info {
+    text-align: right;
+    max-width: 200px;
+  }
+  
+  .prediction-label {
+    font-size: 10px;
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  
+  .prediction-text {
+    font-size: 14px;
+    color: #334155;
+    font-weight: 500;
+  }
+  
+  .details-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background-color: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .details-button:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+  
+  .analysis-card:hover .details-button {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: #93c5fd;
+    color: #2563eb;
+  }
+  
+  .button-icon {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+  }
+  
+  .analysis-card:hover .button-icon {
+    transform: translateX(4px);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .card-content {
+      flex-direction: column;
+      gap: 20px;
+    }
+  
+    .card-left-section,
+    .card-confidence-section,
+    .card-right-section {
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    .card-middle-section {
+      border-left: none;
+      padding-left: 0;
+      min-width: auto;
+    }
+  
+    .card-right-section {
+      justify-content: flex-end;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .analysis-card {
+      padding: 16px;
+    }
+  
+    .card-left-section {
+      flex-direction: column;
+      gap: 12px;
+    }
+  
+    .scan-type-wrapper {
+      width: 100%;
+      justify-content: space-between;
+    }
+  
+    .card-right-section {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .prediction-info {
+      text-align: left;
+      max-width: none;
+    }
+  
+    .details-button {
+      justify-content: center;
+    }
+  }

@@ -1,74 +1,67 @@
-import { useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import DashboardShell from "../../components/layout/DashboardShell";
 import { FiArrowLeft, FiHeart, FiClock, FiInfo } from "react-icons/fi";
+import consultationService from "./data/consultationService";
+import userApi from "./data/userApi";
 import "../../styles/patient-consultation.css";
-
-void motion;
-
-const consultations = [
-  {
-    id: 1,
-    name: "Dehmani mohamed",
-    date: "13/04/2026 -- 12:30 PM to 13:20 PM",
-    result: "ready",
-    statusClass: "ready",
-    avatar:
-      "https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=200&q=80",
-    details:
-      "Your consultation is complete and the results are ready. Review the diagnosis and schedule a follow-up if needed.",
-  },
-  {
-    id: 2,
-    name: "Dehmani mohamed",
-    date: "13/04/2026 -- 12:30 PM to 13:20 PM",
-    result: "not ready",
-    statusClass: "not-ready",
-    avatar:
-      "https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=200&q=80",
-    details:
-      "The consultation is still being processed. You will receive the final report once the doctor completes the review.",
-  },
-  {
-    id: 3,
-    name: "Dehmani mohamed",
-    date: "13/04/2026 -- 12:30 PM to 13:20 PM",
-    result: "ready",
-    statusClass: "ready",
-    avatar:
-      "https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=200&q=80",
-    details:
-      "Your consultation report is ready. Check the results and follow the recommendations for your care plan.",
-  },
-  {
-    id: 4,
-    name: "Dehmani mohamed",
-    date: "13/04/2026 -- 12:30 PM to 13:20 PM",
-    result: "not ready",
-    statusClass: "not-ready",
-    avatar:
-      "https://images.unsplash.com/photo-1615109398623-88346a601842?auto=format&fit=crop&w=200&q=80",
-    details:
-      "We are still finalizing your consultation review. Please check again soon for the completed report.",
-  },
-];
 
 export default function PatientConsultationDetailPage() {
   const { consultationId } = useParams();
   const navigate = useNavigate();
+  const [consultation, setConsultation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const consultation = useMemo(
-    () => consultations.find((item) => item.id === Number(consultationId)),
-    [consultationId]
-  );
+  useEffect(() => {
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+        let data = await consultationService.getConsultationById(consultationId);
+        
+        // Resolve doctor name if missing
+        if (data && !data.name && data.doctorId) {
+          try {
+            const dData = await userApi.getDoctorById(data.doctorId);
+            const fullName = dData.name || dData.fullName || 
+                            (`${dData.firstName || ""} ${dData.lastName || ""}`.trim());
+            data = { 
+              ...data, 
+              name: fullName.startsWith("Dr.") ? fullName : `Dr. ${fullName}` 
+            };
+          } catch (e) {
+            data = { ...data, name: data.name || "Doctor" };
+          }
+        }
+        
+        setConsultation(data);
+      } catch (err) {
+        console.error("Failed to fetch consultation details", err);
+        setError("Détails de la consultation introuvables.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!consultation) {
+    if (consultationId) fetchDetail();
+  }, [consultationId]);
+
+
+  if (loading) {
+    return (
+      <DashboardShell title="Consultation detail" description="Loading...">
+        <div style={{ padding: "40px", textAlign: "center" }}>Chargement...</div>
+      </DashboardShell>
+    );
+  }
+
+  if (error || !consultation) {
     return (
       <DashboardShell title="Consultation detail" description="Not found">
         <div className="patient-consultation-page">
           <div className="consultation-detail-card">
-            <p>Consultation introuvable.</p>
+            <p>{error || "Consultation introuvable."}</p>
             <button
               type="button"
               className="details-btn"
@@ -81,6 +74,7 @@ export default function PatientConsultationDetailPage() {
       </DashboardShell>
     );
   }
+
 
   return (
     <DashboardShell title="Consultation detail" description="Overview">
